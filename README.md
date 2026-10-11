@@ -81,7 +81,7 @@ in `assets/vendor`.
   in offers but not in B.Tech placement rates.
 - The 2026 archive corrects the sheet where the workbook itself shows it is wrong
   (`scripts/build_2026.py` lists every correction):
-  - 11 mistyped roll numbers that pulled another student's CGPA
+  - 13 wrong or missing roll numbers (11 pulled another student's CGPA)
   - 6 CTCs that Sheet7 had wrong
   - 14 duplicate rows dropped
   - 3 "Oracle - WAITLIST" rows left out, since a waitlist is not an offer

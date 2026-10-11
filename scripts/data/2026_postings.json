@@ -2356,7 +2356,7 @@
   "role": "Product Management trainee",
   "offer": "6M + PPO",
   "cgpa": null,
-  "ctc": 11,
+  "ctc": 10,
   "base": 10,
   "stipend": 30,
   "cat": "Non Tech",
@@ -2920,11 +2920,11 @@
   "role": "Product Analyst",
   "offer": "6M + FTE",
   "cgpa": 7,
-  "ctc": 56,
+  "ctc": null,
   "base": null,
   "stipend": 60,
   "cat": "Non Tech",
-  "comments": "Stipend: 1LPM for SDE/DS, 60k for Product Analyst. Eligible: B.tech (All)",
+  "comments": "Stipend: 1LPM for SDE/DS, 60k for Product Analyst. Eligible: B.tech (All). 56 LPA quoted for the drive is the SDE package; Product Analyst CTC not stated",
   "date": "2025-07-10"
  },
  {

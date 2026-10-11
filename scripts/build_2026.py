@@ -61,6 +61,10 @@ ROLL_FIXES = {
     ("syed muneeb ali", "2K22/CO/463"): "2K22/CO/464",
     ("omveer", "2K22/PE/4"): "2K22/PE/41",
     ("dhruv chopra", "2K22/AE/34"): "2K22/CE/47",
+    # Selection message: "Incubation and Solution Engineer ... Sahil (22/CO/390)".
+    ("sahil", "2K22/CO/525"): "2K22/CO/390",
+    # Blank roll; the only Aditya ... Patil in the batch, and CO/35 is otherwise unused.
+    ("aditya patil", ""): "2K22/CO/35",
 }
 
 NAME_FIXES = {"depdeep mishra": "Debdeep Mishra"}
@@ -77,6 +81,10 @@ CTC_FIXES = {
     ("chaitanya gairola", "advantageclub.ai"): 14.0,
     ("arnav kashyap", "minix fintech"): 20.0,   # '18-22 LPA' (midpoint, as Sheet7 does for ranges)
     ("roshan kumar dubey", "minix fintech"): 20.0,
+}
+BASE_FIXES = {  # '10-15LPA base' -> midpoint, matching the CTC convention above
+    ("arnav kashyap", "minix fintech"): 12.5,
+    ("roshan kumar dubey", "minix fintech"): 12.5,
 }
 
 # Rows that only name a company; filled from the one matching posting/row in the workbook.
@@ -181,8 +189,10 @@ def parse_base(t):
     if not t:
         return None
     s = t.lower().replace(",", "")
-    m = re.search(r"base\s*[:\-]?\s*(\d+(?:\.\d+)?)", s) or re.search(
-        r"(\d+(?:\.\d+)?)\s*(?:lpa|l|lakh)?\s*(?:fixed|base)", s
+    # "Base: 6 LPA" / "base - 6", else the number right before "base"/"fixed",
+    # including "15.75 lpa (base)" and "10 LPA (Fixed)".
+    m = re.search(r"base\s*[:\-]\s*(\d+(?:\.\d+)?)", s) or re.search(
+        r"(\d+(?:\.\d+)?)\s*(?:lpa|l|lakh)?\s*\(?\s*(?:fixed|base)", s
     )
     return float(m.group(1)) if m else None
 
@@ -289,7 +299,7 @@ def main(src, dst):
             stats["excluded"] += 1
             continue
 
-        name = text(name)
+        name = re.sub(r"[\s'’\-.]+$", "", text(name))  # "Adarsh Kumar jha'", "Naman Padiyar-"
         roll = clean_roll(roll)
         fixed_roll = ROLL_FIXES.get((name.lower(), roll))
         if fixed_roll:
@@ -318,7 +328,7 @@ def main(src, dst):
             "branch": text(branch).upper(),
         }
         for k, v in ROW_FILLS.get((name.lower(), company), {}).items():
-            if not offer.get(k):
+            if not offer.get(k) or (k == "cat" and offer[k] == "Unknown"):
                 offer[k] = v
                 stats["field filled"] += 1
 
@@ -355,7 +365,7 @@ def main(src, dst):
             ctc_num = offer.pop("ctc") or parse_ctc_text(offer["ctcText"])
             stats["ctc from text"] += 1 if ctc_num else 0
         offer["ctc"] = round(ctc_num, 2) if ctc_num is not None and ctc_num > 0 else None
-        offer["base"] = parse_base(offer["ctcText"]) or (
+        offer["base"] = BASE_FIXES.get((name.lower(), company.lower())) or parse_base(offer["ctcText"]) or (
             offer["ctc"] if offer["ctc"] and "all base" in offer["ctcText"].lower() else None)
         offer["stipend"] = parse_stipend_k(offer["stipendText"])
 

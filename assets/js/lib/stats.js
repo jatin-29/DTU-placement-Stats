@@ -100,7 +100,10 @@ export function buildModel(season, offers, companyRows = [], meta = {}) {
     const status = count > 0 ? 'hired' : anyOngoing ? 'ongoing' : c.roles.length ? 'none' : 'hired';
     const cats = catCounts(c.offers.length ? c.offers : c.roles);
     const mainCat = CATEGORIES.reduce((best, k) => (cats[k] > (cats[best] || 0) ? k : best), 'Unknown');
-    const ctcs = [...c.offers.map((o) => o.ctc), ...c.roles.map((r) => r.ctc)].filter((x) => x !== null);
+    // Highest CTC actually offered; postings only when no offer has a CTC
+    // (posted ranges can exceed what anyone received).
+    const offered = c.offers.map((o) => o.ctc).filter((x) => x !== null);
+    const ctcs = offered.length ? offered : c.roles.map((r) => r.ctc).filter((x) => x !== null);
     const cutoffs = c.roles.map((r) => r.cgpa).filter((x) => x !== null && x > 0);
     const branches = Object.fromEntries([...countBy(c.offers, (o) => o.branch)].sort((a, b) => b[1] - a[1]));
     const offerTypes = [...new Set([...c.offers.map((o) => o.offer), ...c.roles.map((r) => r.offer)].filter(Boolean))];
