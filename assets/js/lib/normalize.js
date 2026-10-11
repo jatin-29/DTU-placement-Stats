@@ -201,6 +201,35 @@ export function finalizeOffer(o) {
   };
 }
 
+// Archived company postings (already structured) -> company rows.
+export function archiveCompanyRows(rows = []) {
+  return rows
+    .filter((r) => text(r.company))
+    .map((r) => ({
+      company: canonicalCompany(r.company),
+      drive: text(r.company),
+      companyKey: companyKey(r.company),
+      role: text(r.role),
+      offer: normOffer(r.offer),
+      cgpa: num(r.cgpa) || null,
+      count: null,
+      ctc: parseCtc(r.ctc),
+      base: num(r.base),
+      stipend: parseStipendK(r.stipend),
+      cat: normCategory(r.cat, r.role),
+      comments: text(r.comments),
+      domain: '',
+      date: text(r.date),
+    }));
+}
+
+// Season-level manual corrections: [{ roll, set: { field: value } }].
+export function applyOverrides(offers, overrides = []) {
+  if (!overrides.length) return offers;
+  const byStudent = new Map(overrides.map((o) => [studentKey(o.roll, o.name || ''), o.set]));
+  return offers.map((o) => (byStudent.has(o.studentKey) ? finalizeOffer({ ...o, ...byStudent.get(o.studentKey) }) : o));
+}
+
 // Students tab -> offers
 export function offersFromRows(rows) {
   return rows

@@ -4,7 +4,7 @@
 import { CONFIG } from '../config.js';
 import { fetchSheetTab } from './gviz.js';
 import { buildModel } from './stats.js';
-import { companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
+import { applyOverrides, archiveCompanyRows, companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: 'no-cache' });
@@ -24,7 +24,7 @@ export async function loadArchive(id) {
   const season = CONFIG.seasons[id];
   const json = await fetchJson(season.data);
   const s = { ...season, branchStrength: json.branchStrength, cgpaBands: json.cgpaBands };
-  return buildModel(s, json.offers.map(finalizeOffer), [], {
+  return buildModel(s, applyOverrides(json.offers.map(finalizeOffer), season.overrides), archiveCompanyRows(json.companies), {
     source: 'archive',
     updated: json.updated,
     note: json.source,
@@ -34,7 +34,7 @@ export async function loadArchive(id) {
 function modelFromTabs(season, tabs, meta) {
   const students = tabs[season.tabs.students] || [];
   const companies = tabs[season.tabs.companies] || [];
-  return buildModel(season, offersFromRows(students), companyRowsFromRows(companies), {
+  return buildModel(season, applyOverrides(offersFromRows(students), season.overrides), companyRowsFromRows(companies), {
     ...meta,
     fingerprint: fingerprint([students, companies]),
   });

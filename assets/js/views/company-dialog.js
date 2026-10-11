@@ -19,9 +19,9 @@ dialog.addEventListener('click', (e) => {
   if (e.target.closest('[data-close]')) dialog.close();
 });
 
-// Roles: the Companies tab when the season has one, otherwise grouped from offers.
-function roleRows(c) {
-  if (c.roles.length) {
+// Roles: the live Companies tab when the season has one, otherwise grouped from offers.
+function roleRows(c, live) {
+  if (live && c.roles.length) {
     return c.roles.map((r) => ({
       role: r.role,
       drive: r.drive !== c.name && r.drive !== r.company ? r.drive : '',
@@ -42,6 +42,11 @@ function roleRows(c) {
     groups.get(k).count++;
   }
   return [...groups.values()].sort((a, b) => b.count - a.count);
+}
+
+function fmtDate(iso) {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function studentRows(c, q) {
@@ -78,10 +83,15 @@ export function openCompany(c, m, ctx) {
   closeHref = ctx.hrefFor(m.season.id, 'companies', null, ctx.route.query);
   if (current === c.slug && dialog.open) return;
   current = c.slug;
-  const roles = roleRows(c);
-  const domain = domainFor(c);
   const live = m.season.live;
-  const statusText = { hired: '', ongoing: 'Process ongoing / yet to start', none: 'No selections reported' }[c.status];
+  const roles = roleRows(c, live);
+  const postings = live ? [] : [...c.roles].sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+  const domain = domainFor(c);
+  const statusText = {
+    hired: '',
+    ongoing: 'Process ongoing / yet to start',
+    none: live ? 'No selections reported' : 'No offers recorded for this company',
+  }[c.status];
   const branchEntries = Object.entries(c.branches);
 
   dialog.innerHTML = html`
@@ -101,7 +111,7 @@ export function openCompany(c, m, ctx) {
         <div class="tile"><div class="tile-label">Highest CTC</div><div class="tile-value">${c.maxCtc !== null ? html`${fmt.n2(c.maxCtc)}<small>LPA</small>` : '—'}</div></div>
         <div class="tile"><div class="tile-label">Average CTC</div><div class="tile-value">${c.avgCtc !== null ? html`${fmt.n2(c.avgCtc)}<small>LPA</small>` : '—'}</div></div>
         <div class="tile"><div class="tile-label">Stipend</div><div class="tile-value">${c.maxStipend !== null ? html`${fmt.n1(c.maxStipend)}<small>K/mo</small>` : '—'}</div></div>
-        ${live ? html`<div class="tile"><div class="tile-label">CGPA cut-off</div><div class="tile-value">${c.cgpaCutoff ? fmt.n1(c.cgpaCutoff) : 'None'}</div></div>` : ''}
+        ${live || c.cgpaCutoff ? html`<div class="tile"><div class="tile-label">CGPA cut-off</div><div class="tile-value">${c.cgpaCutoff ? fmt.n1(c.cgpaCutoff) : 'None'}</div></div>` : ''}
       </div>
 
       ${branchEntries.length
@@ -110,7 +120,7 @@ export function openCompany(c, m, ctx) {
           )}</div></div>`
         : ''}
 
-      <div>
+      ${roles.length ? html`<div>
         <h3>Roles & packages</h3>
         <div class="table-wrap">
           <table>
@@ -130,7 +140,31 @@ export function openCompany(c, m, ctx) {
             )}</tbody>
           </table>
         </div>
-      </div>
+      </div>` : ''}
+
+      ${postings.length
+        ? html`<div>
+        <h3>Campus postings</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Posted</th><th>Role</th><th>Offer</th><th>Profile</th><th class="r">CTC</th><th class="r">Base</th><th class="r">Stipend</th><th class="r">CGPA</th><th>Notes</th></tr></thead>
+            <tbody>${postings.map(
+              (r) => html`<tr>
+                <td>${r.date ? fmtDate(r.date) : '—'}</td>
+                <td class="wrap-cell">${r.role || '—'}</td>
+                <td>${r.offer || '—'}</td>
+                <td><span class="cat-dot" style="--c:${raw(catVar(r.cat))}">${r.cat}</span></td>
+                <td class="r">${fmt.n2(r.ctc)}</td>
+                <td class="r">${fmt.n2(r.base)}</td>
+                <td class="r">${r.stipend !== null ? `${fmt.n1(r.stipend)}K` : '—'}</td>
+                <td class="r">${r.cgpa ? fmt.n1(r.cgpa) : '—'}</td>
+                <td class="wrap-cell muted">${r.comments || ''}</td>
+              </tr>`,
+            )}</tbody>
+          </table>
+        </div>
+      </div>`
+        : ''}
 
       <div>
         <div class="toolbar" style="margin-bottom:8px">

@@ -128,7 +128,11 @@ export function renderDashboard(root, m, ctx) {
       </div>
       <div class="tiles">
         ${tile('Total offers', fmt.int(t.offers), '', `${fmt.int(t.multiOffer)} students hold 2+ offers`)}
-        ${tile(live ? 'Companies visited' : 'Recruiting companies', fmt.int(t.companiesVisited), '', live ? `${fmt.int(t.companiesWithOffers)} with selections · ${fmt.int(t.companiesOngoing)} ongoing` : 'with recorded offers')}
+        ${live
+          ? tile('Companies visited', fmt.int(t.companiesVisited), '', `${fmt.int(t.companiesWithOffers)} with selections · ${fmt.int(t.companiesOngoing)} ongoing`)
+          : t.companiesVisited > t.companiesWithOffers
+            ? tile('Companies visited', fmt.int(t.companiesVisited), '', `${fmt.int(t.companiesWithOffers)} with recorded offers`)
+            : tile('Recruiting companies', fmt.int(t.companiesVisited), '', 'with recorded offers')}
         ${tile('Highest CTC', fmt.n2(t.maxCtc), 'LPA', t.maxCtcCompany || '')}
         ${tile('Average CTC', fmt.n2(t.avgCtc), 'LPA', 'per offer')}
         ${tile('Median CTC', fmt.n2(t.medianCtc), 'LPA', 'per offer')}

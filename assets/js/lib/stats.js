@@ -95,7 +95,8 @@ export function buildModel(season, offers, companyRows = [], meta = {}) {
     const name = pickDisplayName(c.names);
     const listedCount = c.roles.reduce((a, r) => a + (r.count || 0), 0);
     const count = Math.max(c.offers.length, listedCount);
-    const anyOngoing = c.roles.some((r) => r.count === null);
+    // Only a live season has processes still running; archived postings without offers are 'none'.
+    const anyOngoing = !!season.live && c.roles.some((r) => r.count === null);
     const status = count > 0 ? 'hired' : anyOngoing ? 'ongoing' : c.roles.length ? 'none' : 'hired';
     const cats = catCounts(c.offers.length ? c.offers : c.roles);
     const mainCat = CATEGORIES.reduce((best, k) => (cats[k] > (cats[best] || 0) ? k : best), 'Unknown');

@@ -21,6 +21,11 @@ export const CONFIG = {
       tabs: { students: 'Students', companies: 'Companies' },
       // Written by scripts/fetch-sheet.mjs on every deploy; used when the live read fails.
       snapshot: 'data/2027.json',
+      // Corrections applied on top of the live data, matched by roll number.
+      // They win over whatever the sheet says, on every refresh.
+      overrides: [
+        { roll: '23/EE/355', set: { cgpa: 8.4 } }, // Hiten Sharma
+      ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
         CS: 517, IT: 189, SE: 192, MC: 183, EC: 247, EE: 293, EP: 114,

@@ -6,6 +6,7 @@ import { logoHtml } from '../lib/logos.js';
 const state = { q: '', cat: 'all', status: 'all', branch: 'all', sort: 'offers' };
 
 const STATUS_LABEL = { hired: 'Selections out', ongoing: 'Ongoing', none: 'No selections' };
+const ARCHIVE_LABEL = { ...STATUS_LABEL, none: 'No offers recorded' };
 
 function matches(c, q) {
   if (!q) return true;
@@ -29,12 +30,12 @@ function filtered(m) {
   return list.sort(by);
 }
 
-export function companyCard(c, href, { branch = null } = {}) {
+export function companyCard(c, href, { branch = null, live = true } = {}) {
   const roles = c.roleNames.slice(0, 2).join(' · ') + (c.roleNames.length > 2 ? ` +${c.roleNames.length - 2}` : '');
   const offerLabel = branch ? `from ${branch}` : c.count === 1 ? 'offer' : 'offers';
   const offerCount = branch ? c.branches[branch] || 0 : c.count;
   return html`<a class="panel company-card" href="${href}" data-slug="${c.slug}">
-    ${c.status !== 'hired' ? html`<span class="status-badge ${c.status === 'ongoing' ? 'is-ongoing' : ''}">${STATUS_LABEL[c.status]}</span>` : ''}
+    ${c.status !== 'hired' ? html`<span class="status-badge ${c.status === 'ongoing' ? 'is-ongoing' : ''}">${(live ? STATUS_LABEL : ARCHIVE_LABEL)[c.status]}</span>` : ''}
     <div class="cc-top">
       ${raw(logoHtml(c, 'md'))}
       <div class="cc-name">
@@ -58,7 +59,7 @@ export function renderCompanies(root, m, ctx) {
   const sId = m.season.id;
   const branchCodes = m.branches.filter((b) => b.offers > 0).map((b) => b.code);
   if (state.branch !== 'all' && !branchCodes.includes(state.branch)) state.branch = 'all';
-  if (!m.season.live) state.status = 'all';
+  if (!m.season.live && state.status === 'ongoing') state.status = 'all';
   const counts = { hired: 0, ongoing: 0, none: 0 };
   for (const c of m.companies) counts[c.status]++;
 
@@ -77,7 +78,13 @@ export function renderCompanies(root, m, ctx) {
             <option value="ongoing">Ongoing / yet to start (${counts.ongoing})</option>
             <option value="none">No selections (${counts.none})</option>
           </select>`
-        : ''}
+        : counts.none
+          ? html`<select class="select" data-f="status" aria-label="Status">
+            <option value="all">All companies (${m.companies.length})</option>
+            <option value="hired">With offers (${counts.hired})</option>
+            <option value="none">No offers recorded (${counts.none})</option>
+          </select>`
+          : ''}
       <select class="select" data-f="branch" aria-label="Branch">
         <option value="all">All branches</option>
         ${branchCodes.map((b) => html`<option value="${b}">${b} — ${BRANCHES[b]?.short || b}</option>`)}
@@ -102,7 +109,7 @@ export function renderCompanies(root, m, ctx) {
     count.textContent = `${list.length} ${list.length === 1 ? 'company' : 'companies'} · ${offers} offers${state.branch !== 'all' ? ` for ${state.branch}` : ''}`;
     grid.innerHTML = list.length
       ? list
-          .map((c) => companyCard(c, ctx.hrefFor(sId, 'companies', c.slug), { branch: state.branch !== 'all' ? state.branch : null }))
+          .map((c) => companyCard(c, ctx.hrefFor(sId, 'companies', c.slug), { branch: state.branch !== 'all' ? state.branch : null, live: m.season.live }))
           .join('')
       : '<div class="empty">No companies match these filters.</div>';
   };

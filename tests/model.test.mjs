@@ -6,7 +6,7 @@ import { CONFIG } from '../assets/js/config.js';
 import { buildModel } from '../assets/js/lib/stats.js';
 import { parseGviz } from '../assets/js/lib/gviz.js';
 import {
-  companyKey, companyRowsFromRows, finalizeOffer, normCategory, normOffer, offersFromRows,
+  applyOverrides, companyKey, companyRowsFromRows, finalizeOffer, normCategory, normOffer, offersFromRows,
   parseCtc, parseStipendK, pickDisplayName, studentKey,
 } from '../assets/js/lib/normalize.js';
 
@@ -64,4 +64,16 @@ test('2027 snapshot model', async () => {
   console.log('2027', JSON.stringify(m.totals));
   console.log('top', m.companies.slice(0, 8).map((c) => `${c.name}:${c.count}`).join(', '));
   console.log('status', JSON.stringify(m.companies.reduce((a, c) => ((a[c.status] = (a[c.status] || 0) + 1), a), {})));
+});
+
+test('season overrides win over sheet values', async () => {
+  const d = await json('data/2027.json');
+  const s = CONFIG.seasons['2027'];
+  const offers = applyOverrides(offersFromRows(d.tabs.Students), s.overrides);
+  for (const o of s.overrides) {
+    const hits = offers.filter((x) => x.studentKey === studentKey(o.roll, ''));
+    for (const h of hits) for (const [k, v] of Object.entries(o.set)) assert.equal(h[k], v);
+  }
+  const hiten = offers.filter((x) => x.roll === '23/EE/355');
+  assert.ok(hiten.length >= 1 && hiten.every((x) => x.cgpa === 8.4 && x.name === 'Hiten Sharma'));
 });
