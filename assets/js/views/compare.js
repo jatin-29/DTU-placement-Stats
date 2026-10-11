@@ -7,15 +7,18 @@ import { logoHtml } from '../lib/logos.js';
 const unify = (code) => (code === 'CO' ? 'CS' : code);
 const label = (code) => (code === 'CS' ? 'CS / CO' : code);
 
-function tile(name, now, before, f, diffFmt = f) {
+// kind 'rate' colours the change (higher is better); 'count' stays neutral,
+// because 2027 counts are expected to be lower while the season is running.
+function tile(name, now, before, f, { diffFmt = f, kind = 'rate' } = {}) {
   const diff = now !== null && before !== null ? now - before : null;
+  const tone = kind === 'rate' && diff ? (diff > 0 ? 'is-up' : 'is-down') : '';
   return html`<div class="panel compare-tile">
     <div class="tile-label">${name}</div>
     <div class="pair">
       <div><div class="yr">2027 so far</div><div class="big">${f(now)}</div></div>
       <div style="text-align:right"><div class="yr">2026 final</div><div class="prev">${f(before)}</div></div>
     </div>
-    ${diff !== null ? html`<div class="muted" style="font-size:12.5px;margin-top:4px">${diff >= 0 ? '+' : '−'}${diffFmt(Math.abs(diff))} vs last year</div>` : ''}
+    ${diff !== null ? html`<span class="delta ${tone}">${diff >= 0 ? '▲' : '▼'} ${diffFmt(Math.abs(diff))} vs last year</span>` : ''}
   </div>`;
 }
 
@@ -54,10 +57,10 @@ export function renderCompare(root, ctx) {
     </div>
     <div class="notice">The 2027 season is still running, so its totals will keep growing. Rates are a fair comparison only once the season ends.</div>
     <div class="compare-tiles">
-      ${tile('Students placed', a.placedInBatch, b.placedInBatch, fmt.int)}
-      ${tile('Placement rate', a.pct, b.pct, pctPts, (v) => `${fmt.n1(v)} pts`)}
-      ${tile('Offers', a.offers, b.offers, fmt.int)}
-      ${tile('Recruiting companies', a.companiesWithOffers, b.companiesWithOffers, fmt.int)}
+      ${tile('Students placed', a.placedInBatch, b.placedInBatch, fmt.int, { kind: 'count' })}
+      ${tile('Placement rate', a.pct, b.pct, pctPts, { diffFmt: (v) => `${fmt.n1(v)} pts` })}
+      ${tile('Offers', a.offers, b.offers, fmt.int, { kind: 'count' })}
+      ${tile('Recruiting companies', a.companiesWithOffers, b.companiesWithOffers, fmt.int, { kind: 'count' })}
       ${tile('Average CTC (LPA)', a.avgCtc, b.avgCtc, fmt.n2)}
       ${tile('Median CTC (LPA)', a.medianCtc, b.medianCtc, fmt.n2)}
       ${tile('Highest CTC (LPA)', a.maxCtc, b.maxCtc, fmt.n2)}

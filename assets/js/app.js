@@ -308,6 +308,31 @@ setInterval(() => {
 }, 30000);
 
 installLogoFallbacks(document);
+
+// Wide tables scroll sideways on small screens; fade the edge that has more columns.
+function updateTableFade(wrap) {
+  const max = wrap.scrollWidth - wrap.clientWidth;
+  wrap.classList.toggle('fade-left', max > 2 && wrap.scrollLeft > 2);
+  wrap.classList.toggle('fade-right', max > 2 && wrap.scrollLeft < max - 2);
+}
+let fadeQueued = false;
+function updateTableFades() {
+  if (fadeQueued) return;
+  fadeQueued = true;
+  requestAnimationFrame(() => {
+    fadeQueued = false;
+    document.querySelectorAll('.table-wrap').forEach(updateTableFade);
+  });
+}
+document.addEventListener(
+  'scroll',
+  (e) => {
+    if (e.target instanceof Element && e.target.classList.contains('table-wrap')) updateTableFade(e.target);
+  },
+  true,
+);
+window.addEventListener('resize', updateTableFades);
+new MutationObserver(updateTableFades).observe(document.body, { childList: true, subtree: true });
 paintThemeButton();
 if (!location.hash || location.hash === '#/' || location.hash === '#') {
   history.replaceState(null, '', hrefFor(CONFIG.defaultSeason, 'dashboard'));

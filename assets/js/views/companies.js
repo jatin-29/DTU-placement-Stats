@@ -30,6 +30,18 @@ function filtered(m) {
   return list.sort(by);
 }
 
+// Profile tags first, then CGPA cut-off and offer types; at most three, then "+N".
+function cardTags(c) {
+  const tags = [
+    ...c.catsPresent.map((k) => ({ html: html`<span class="tag"><i class="key ${catClass(k)}"></i>${k}</span>`, text: k })),
+    ...(c.cgpaCutoff ? [{ html: html`<span class="tag">CGPA ${fmt.n1(c.cgpaCutoff)}+</span>`, text: `CGPA ${fmt.n1(c.cgpaCutoff)}+` }] : []),
+    ...c.offerTypes.map((t) => ({ html: html`<span class="tag">${t}</span>`, text: t })),
+  ];
+  const shown = tags.slice(0, 2);
+  const rest = tags.slice(shown.length);
+  return html`${shown.map((t) => t.html)}${rest.length ? html`<span class="tag is-more" title="${rest.map((t) => t.text).join(', ')}">+${rest.length}</span>` : ''}`;
+}
+
 export function companyCard(c, href, { branch = null, live = true } = {}) {
   const roles = c.roleNames.slice(0, 2).join(' · ') + (c.roleNames.length > 2 ? ` +${c.roleNames.length - 2}` : '');
   const offerLabel = branch ? `from ${branch}` : c.count === 1 ? 'offer' : 'offers';
@@ -47,11 +59,7 @@ export function companyCard(c, href, { branch = null, live = true } = {}) {
       <div class="cc-stat"><div class="v">${fmt.int(offerCount)}</div><div class="l">${offerLabel}</div></div>
       <div class="cc-stat"><div class="v">${c.maxCtc !== null ? html`${fmt.n2(c.maxCtc)}<small> LPA</small>` : '—'}</div><div class="l">highest CTC</div></div>
     </div>
-    <div class="cc-tags">
-      ${c.catsPresent.map((k) => html`<span class="tag"><i class="key ${catClass(k)}"></i>${k}</span>`)}
-      ${c.offerTypes.slice(0, 2).map((t) => html`<span class="tag">${t}</span>`)}
-      ${c.cgpaCutoff ? html`<span class="tag">CGPA ${fmt.n1(c.cgpaCutoff)}+</span>` : ''}
-    </div>
+    <div class="cc-tags">${cardTags(c)}</div>
   </a>`;
 }
 

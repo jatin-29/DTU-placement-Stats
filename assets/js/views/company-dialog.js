@@ -98,7 +98,7 @@ export function openCompany(c, m, ctx) {
     <div class="modal-head">
       ${raw(logoHtml(c, 'lg'))}
       <div style="min-width:0">
-        <h2 id="company-dialog-title">${c.name}</h2>
+        <h2 id="company-dialog-title" tabindex="-1">${c.name}</h2>
         <p>${m.season.label}${c.catsPresent.length ? ` · ${c.catsPresent.join(', ')}` : ''}${domain ? html` · <a href="https://${domain}" target="_blank" rel="noopener">${domain}</a>` : ''}</p>
       </div>
       <button class="icon-btn" type="button" data-close aria-label="Close">${raw(ICONS.close)}</button>
@@ -186,7 +186,7 @@ export function openCompany(c, m, ctx) {
     );
   }
   if (!dialog.open) dialog.showModal();
-  dialog.querySelector('.modal-head .icon-btn').focus({ preventScroll: true });
+  dialog.querySelector('#company-dialog-title').focus({ preventScroll: true });
   dialog.scrollTop = 0;
 }
 

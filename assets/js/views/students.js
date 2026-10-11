@@ -62,7 +62,7 @@ export function renderStudents(root, m, ctx) {
 
   root.innerHTML = html`
     <div class="toolbar">
-      <div class="grow"><input class="input input-search" type="search" placeholder="Search name, roll no, company or role…" aria-label="Search students" value="${state.q}" data-f="q"></div>
+      <div class="grow"><input class="input input-search" type="search" placeholder="Name, roll no, company…" aria-label="Search students" value="${state.q}" data-f="q"></div>
       <select class="select" data-f="branch" aria-label="Branch">
         <option value="all">All branches</option>
         ${branches.map((b) => html`<option value="${b}">${b} — ${BRANCHES[b]?.short || b}</option>`)}
@@ -83,9 +83,11 @@ export function renderStudents(root, m, ctx) {
       <input class="input input-cgpa" type="number" min="0" max="10" step="0.1" placeholder="min" aria-label="Minimum CGPA" value="${state.min}" data-f="min">
       <input class="input input-cgpa" type="number" min="0" max="10" step="0.1" placeholder="max" aria-label="Maximum CGPA" value="${state.max}" data-f="max">
       <button class="btn" type="button" data-reset>Reset</button>
-      <button class="btn" type="button" data-csv>${raw(ICONS.download)}CSV</button>
     </div>
-    <p class="result-count" data-count></p>
+    <div class="result-bar">
+      <p class="result-count" data-count></p>
+      <button class="btn btn-sm" type="button" data-csv>${raw(ICONS.download)}Download CSV</button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead><tr>

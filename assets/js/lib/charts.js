@@ -75,6 +75,7 @@ const tipLabels = {
 
 function baseOptions(p, o) {
   const horizontal = !!o.horizontal;
+  const narrow = window.innerWidth < 560;
   const valueAxis = {
     stacked: !!o.stacked,
     beginAtZero: true,
@@ -94,7 +95,13 @@ function baseOptions(p, o) {
     stacked: !!o.stacked,
     grid: { display: false },
     border: { color: p.axis },
-    ticks: { color: p.ink2, font: { size: 12 }, autoSkip: false, maxRotation: 0 },
+    ticks: {
+      color: p.ink2,
+      autoSkip: false,
+      // On phones, let x-axis labels tilt instead of overlapping.
+      font: { size: !horizontal && narrow ? 10.5 : 12 },
+      maxRotation: !horizontal && narrow ? 50 : 0,
+    },
   };
   return {
     responsive: true,

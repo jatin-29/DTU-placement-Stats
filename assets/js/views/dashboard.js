@@ -159,7 +159,7 @@ export function renderDashboard(root, m, ctx) {
     <div class="section-title"><h2>Packages & profiles</h2><p>CTC in lakhs per annum (LPA)</p></div>
     <div class="grid-2">
       ${chartCard('ch-ctc', 'CTC distribution', 'Number of offers in each CTC range (LPA)', { legend: catLegend() })}
-      <section class="panel chart-card">
+      <section class="panel chart-card is-table">
         <header><div><h3>Tech vs non-tech vs core</h3><p>Offers and CTC (LPA) by profile</p></div></header>
         ${categorySummary(m)}
       </section>
