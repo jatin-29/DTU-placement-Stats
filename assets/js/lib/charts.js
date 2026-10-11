@@ -8,6 +8,13 @@ export function destroyCharts() {
   active.clear();
 }
 
+// For views that redraw one chart without a full re-render.
+export function destroyChart(chart) {
+  if (!chart || !active.has(chart)) return;
+  chart.destroy();
+  active.delete(chart);
+}
+
 function css(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }

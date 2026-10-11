@@ -192,7 +192,7 @@ function rerender({ keepScroll = false } = {}) {
 
   // `fresh` is true the first time a URL is shown with data, so views apply
   // URL filters once and keep the user's own changes across live refreshes.
-  const ctx = { route, navigate, hrefFor, models, fresh: false };
+  const ctx = { route, navigate, hrefFor, models, errors, fresh: false };
   const view = VIEWS[route.view];
 
   if (route.view === 'compare') {

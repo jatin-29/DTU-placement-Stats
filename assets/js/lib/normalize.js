@@ -213,6 +213,8 @@ export function archiveCompanyRows(rows = []) {
       role: text(r.role),
       offer: normOffer(r.offer),
       cgpa: num(r.cgpa) || null,
+      // Cut-offs that differ by branch, e.g. { EC: 8 } on a 7.0 drive.
+      cgpaByBranch: r.cgpaByBranch || null,
       count: null,
       ctc: parseCtc(r.ctc),
       base: num(r.base),
@@ -239,6 +241,12 @@ export function offersFromRows(rows) {
     .map(finalizeOffer);
 }
 
+// A bare hostname, or '' (the value ends up inside image URLs).
+function cleanDomain(v) {
+  const d = text(v).toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d) ? d : '';
+}
+
 // Companies tab -> company/role rows
 export function companyRowsFromRows(rows) {
   return rows
@@ -259,7 +267,7 @@ export function companyRowsFromRows(rows) {
         stipend: parseStipendK(r.stipend),
         cat: normCategory(r.cat, r.role),
         comments: text(r.comments),
-        domain: text(r.domain).replace(/^https?:\/\//, '').replace(/\/.*$/, ''),
+        domain: cleanDomain(r.domain),
       };
     });
 }

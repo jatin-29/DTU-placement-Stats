@@ -645,7 +645,12 @@
   "stipend": 200,
   "cat": "Tech",
   "comments": "CGPA 7.0 CS/IT, 8.0 circuit branches. PPO CTC: ₹57.3L – ₹59.3L. No Backlogs Allowed. Eligible: CS/IT related and Circuital",
-  "date": "2025-07-18"
+  "date": "2025-07-18",
+  "cgpaByBranch": {
+   "EC": 8,
+   "EE": 8,
+   "EP": 8
+  }
  },
  {
   "company": "Deutsche Telekom Digital Labs",
@@ -783,7 +788,7 @@
   "company": "EnWe Clean Technologies",
   "role": "Intern",
   "offer": "4M + PPO",
-  "cgpa": null,
+  "cgpa": 6.5,
   "ctc": 9,
   "base": null,
   "stipend": 15,
@@ -1479,7 +1484,7 @@
   "company": "L&T",
   "role": "GET",
   "offer": "FTE",
-  "cgpa": null,
+  "cgpa": 6.5,
   "ctc": null,
   "base": null,
   "stipend": null,
@@ -1815,7 +1820,7 @@
   "company": "OneBanc",
   "role": "Product Owner",
   "offer": "INTERN + PPO",
-  "cgpa": null,
+  "cgpa": 8,
   "ctc": 12,
   "base": null,
   "stipend": 40,
@@ -1827,7 +1832,7 @@
   "company": "OneBanc",
   "role": "Software Development Engineer",
   "offer": "INTERN + PPO",
-  "cgpa": null,
+  "cgpa": 8,
   "ctc": 12,
   "base": null,
   "stipend": 40,
@@ -2679,7 +2684,7 @@
   "company": "Univlabs",
   "role": "GET (Electronics / Mechanical / IT)",
   "offer": "FTE",
-  "cgpa": null,
+  "cgpa": 7.5,
   "ctc": 6,
   "base": null,
   "stipend": null,

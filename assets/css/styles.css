@@ -2013,6 +2013,13 @@ main {
   width: 340px;
   max-width: 100%;
 }
+.elig-fields .elig-clear {
+  align-self: flex-end;
+  min-height: 40px;
+}
+.elig-fields .elig-clear[hidden] {
+  display: none;
+}
 .elig-hint {
   grid-column: 1 / -1;
   margin: -8px 0 0;
@@ -2136,6 +2143,14 @@ main {
 .elig-group[open] > summary::after {
   content: 'Hide';
 }
+.elig-group-head {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
 .elig-group-title {
   display: inline-flex;
   align-items: center;
@@ -2172,9 +2187,7 @@ main {
 }
 .elig-roles {
   max-width: 340px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 .elig-expand {
   display: flex;

@@ -326,7 +326,7 @@ export function logoHtml(company, size = 'md') {
   const mono = `<span class="logo-mono">${escapeHtml(initials(company.name))}</span>`;
   if (!srcs.length) return `<span class="logo logo-${size} is-mono" ${hue} aria-hidden="true">${mono}</span>`;
   const rest = srcs.slice(1).join('|');
-  return `<span class="logo logo-${size}" ${hue} aria-hidden="true">${mono}<img src="${srcs[0]}" data-fallbacks="${rest}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`;
+  return `<span class="logo logo-${size}" ${hue} aria-hidden="true">${mono}<img src="${escapeHtml(srcs[0])}" data-fallbacks="${escapeHtml(rest)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`;
 }
 
 // One delegated handler for every logo image on the page.
