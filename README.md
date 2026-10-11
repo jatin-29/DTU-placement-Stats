@@ -79,6 +79,12 @@ in `assets/vendor`.
   the same programme.
 - In 2026, offers to M.Tech, MBA and other-batch students are grouped as `MISC`. They count
   in offers but not in B.Tech placement rates.
-- Exact duplicate rows in the 2026 sheet (12 double submissions) were dropped.
+- The 2026 archive corrects the sheet where the workbook itself shows it is wrong
+  (`scripts/build_2026.py` lists every correction):
+  - 11 mistyped roll numbers that pulled another student's CGPA
+  - 6 CTCs that Sheet7 had wrong
+  - 14 duplicate rows dropped
+  - 3 "Oracle - WAITLIST" rows left out, since a waitlist is not an offer
+  - CGPA and branch filled in from the batch CGPA list
 
 Not affiliated with DTU or its Training & Placement department.
