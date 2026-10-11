@@ -75,7 +75,8 @@ export function inferCategory(role) {
 }
 
 export function normOffer(v) {
-  const s = text(v).toUpperCase().replace(/INTERN(SHIP)?/g, '').replace(/\s+/g, '');
+  // "6M Intern + PPO" -> "6M + PPO", but a bare "Intern + PPO" keeps its INTERN.
+  const s = text(v).toUpperCase().replace(/\s+/g, '').replace(/(\d+M)INTERN(SHIP)?/g, '$1');
   if (!s || /LPA|#/.test(s)) return '';
   return s.split('+').filter(Boolean).join(' + ');
 }

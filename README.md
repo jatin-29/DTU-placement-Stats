@@ -86,5 +86,9 @@ in `assets/vendor`.
   - 14 duplicate rows dropped
   - 3 "Oracle - WAITLIST" rows left out, since a waitlist is not an offer
   - CGPA and branch filled in from the batch CGPA list
+  - 12 offers that never made it into the sheet, taken from placement-cell selection messages
+    (listed in `EXTRA_OFFERS`)
+  - Campus postings (`scripts/data/2026_postings.json`) list every company that visited, with
+    roles, packages and CGPA cut-offs, including companies with no recorded offers
 
 Not affiliated with DTU or its Training & Placement department.

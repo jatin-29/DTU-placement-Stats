@@ -60,8 +60,8 @@ function studentRows(c, q) {
     .sort((a, b) => (b.ctc || 0) - (a.ctc || 0) || (b.cgpa || 0) - (a.cgpa || 0) || a.name.localeCompare(b.name));
 }
 
-function studentsTable(rows) {
-  if (!rows.length) return '<div class="empty">No students listed yet.</div>';
+function studentsTable(rows, live = true) {
+  if (!rows.length) return `<div class="empty">${live ? 'No students listed yet.' : 'No named selections recorded.'}</div>`;
   return html`<table>
     <thead><tr><th class="r">#</th><th>Student</th><th>Branch</th><th class="r">CGPA</th><th>Role</th><th>Offer</th><th class="r">CTC</th><th class="r">Stipend</th></tr></thead>
     <tbody>${rows.map(
@@ -171,7 +171,7 @@ export function openCompany(c, m, ctx) {
           <h3 style="margin:0;margin-right:auto">Selected students (${c.offers.length})</h3>
           ${c.offers.length > 8 ? html`<input class="input input-search" style="max-width:260px" type="search" placeholder="Filter students…" aria-label="Filter students" data-student-q>` : ''}
         </div>
-        <div class="table-wrap" data-students>${raw(studentsTable(studentRows(c, '')))}</div>
+        <div class="table-wrap" data-students>${raw(studentsTable(studentRows(c, ''), live))}</div>
       </div>
     </div>
   `;
@@ -181,7 +181,7 @@ export function openCompany(c, m, ctx) {
     q.addEventListener(
       'input',
       debounce(() => {
-        dialog.querySelector('[data-students]').innerHTML = studentsTable(studentRows(c, q.value));
+        dialog.querySelector('[data-students]').innerHTML = studentsTable(studentRows(c, q.value), live);
       }, 100),
     );
   }

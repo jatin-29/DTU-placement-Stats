@@ -8,6 +8,11 @@ being read live. To rebuild it, download "Placement'26 Unoff Stats" as .xlsx
     pip install openpyxl
     python3 scripts/build_2026.py "Placement'26 Unoff Stats.xlsx" data/2026.json
 
+Company postings (roles, packages, CGPA cut-offs, dates of companies that
+visited, including ones with no recorded offers) come from the curated file
+scripts/data/2026_postings.json, extracted from the workbook's job-postings tab
+(Sheet8) and Sheet2.
+
 Sheets used:
   * "Detailed DATA"         one row per offer (roll, name, CGPA, company, role,
                             duration, stipend, CTC text, type, branch)
@@ -18,6 +23,7 @@ Sheets used:
 """
 
 import json
+import os
 import re
 import sys
 from collections import Counter
@@ -83,6 +89,24 @@ ROW_FILLS = {
     # Every HCL row in Detailed DATA is an FTE tech role (the two HCL packages differ, so no CTC).
     ("deevansh kishore", "HCL"): {"offer": "FTE", "cat": "Tech"},
 }
+
+# Offers missing from the sheet, taken from the placement-cell selection messages
+# pasted as comments on the "DTU 2026 PLACEMENTS" sheet (announced Nov 2025 - Jan 2026).
+# Columns as in Detailed DATA: roll, name, company, role, duration, stipend, CTC, type.
+EXTRA_OFFERS = [
+    ("2K22/CO/407", "Sanchit Mishra", "Keysight", "IT Intern", "6M", "", "", "Tech"),          # 6 Jan 2026
+    ("2K22/SE/162", "Shakti Singh", "Keysight", "IT Intern", "6M", "", "", "Tech"),            # 25 Dec 2025
+    ("2K22/CO/213", "Hitesh Kholwal", "Think Exam", "Software Trainee", "6M + PPO", "", "", "Tech"),  # 1 Jan 2026
+    ("2K22/SE/72", "Harsh Kumar", "Think Exam", "Software Trainee", "6M + PPO", "", "", "Tech"),
+    ("2K22/CO/477", "Tushar Mongia", "ClearTax", "SDE", "6M + PPO", "", "20 lpa (14 base + 6 esops)", "Tech"),  # 26 Dec 2025
+    ("2K22/IT/147", "Satwik Jain", "Novus Hi-Tech Robotics", "", "", "", "", ""),               # 25 Dec 2025
+    ("2K22/EE/106", "Farhan Shahid", "Novus Hi-Tech Robotics", "", "", "", "", ""),
+    ("2K22/PE/57", "Saumik Kumar", "PCBL", "GET", "", "", "", "Core"),                            # 19 Dec 2025
+    ("2K22/EE/277", "Tushar", "PCBL", "GET", "", "", "", "Core"),
+    ("2K22/CO/37", "Aibel Rejan Varghese", "Magicpin", "Data Analyst", "6M + PPO", "38K", "10 LPA", "Non Tech"),  # Dec 2025
+    ("2K22/EE/292", "Vansh Vashishtha", "Exicom Tele Systems", "", "6M + FTE", "30K", "7 LPA", ""),  # 10 Dec 2025
+    ("2K22/EE/285", "Uttkarsh Sharma", "Wolf Mentoring", "", "FTE", "", "10 LPA", ""),            # 27 Nov 2025
+]
 
 # "Oracle - WAITLIST" rows are waitlisted candidates, not offers.
 EXCLUDED_COMPANIES = {"oracle - waitlist"}
@@ -253,7 +277,9 @@ def main(src, dst):
 
     offers, seen, by_name = [], {}, {}
     stats = Counter()
-    for r in detailed:
+    extra = [[roll, name, None, comp, role, dur, stip, ctc, None, cat, ""] + [None] * 20
+             for roll, name, comp, role, dur, stip, ctc, cat in EXTRA_OFFERS]
+    for r in detailed + extra:
         roll, name, cgpa, company, role, duration, stipend, ctc, _count, cat, branch = r[:11]
         raw_company = text(company).lower()
         company = norm_company(company)
@@ -355,7 +381,21 @@ def main(src, dst):
         if offer["cat"] == "Unknown":
             offer["cat"] = infer_cat(offer["role"])
 
+        if r in extra:
+            if not (hit and names_match(name, hit["name"])):
+                sys.exit(f"EXTRA_OFFERS entry {name} {roll} does not match the batch CGPA list")
+            stats["extra offer added"] += 1
         offers.append(offer)
+
+    # Duplicates may have contributed text fields after their kept row was parsed.
+    for o in offers:
+        if o["stipend"] is None and o["stipendText"]:
+            o["stipend"] = parse_stipend_k(o["stipendText"])
+        if o["ctc"] is None and o["ctcText"]:
+            v = parse_ctc_text(o["ctcText"])
+            o["ctc"] = round(v, 2) if v and v < 1000 else None
+        if o["base"] is None and o["ctcText"]:
+            o["base"] = parse_base(o["ctcText"])
 
     # Batch aggregates from the CGPA sheet (no per-student values leave this script).
     strength = Counter(text(r[3]).upper() for r in cgpa_rows if text(r[3]))
@@ -370,6 +410,12 @@ def main(src, dst):
                 total += 1
         bands.append({"label": label, "min": lo, "max": hi, "total": total})
 
+    postings_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "2026_postings.json")
+    with open(postings_path, encoding="utf-8") as f:
+        postings = json.load(f)
+    for p in postings:
+        p["company"] = norm_company(p["company"])
+
     out = {
         "season": "2026",
         "batch": "2K22",
@@ -378,10 +424,12 @@ def main(src, dst):
         "branchStrength": dict(sorted(strength.items())),
         "cgpaBands": bands,
         "offers": offers,
+        "companies": postings,
     }
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
+    print(f"company postings: {len(postings)} ({len({p['company'] for p in postings})} companies)")
     print(f"offers: {len(offers)}; " + ", ".join(f"{k}: {v}" for k, v in sorted(stats.items())))
     print(f"students in batch: {sum(strength.values())}")
 
