@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DTU Placement Stats</title>
+    <meta name="description" content="Unofficial DTU placement statistics — live 2027 season from the community Google Sheet plus the full 2026 archive, with branch-wise tech / non-tech / core breakdowns and company-wise selections." />
+    <meta name="theme-color" content="#9b1c1c" />
+    <meta property="og:title" content="DTU Placement Stats" />
+    <meta property="og:description" content="Live DTU placement dashboard: companies, branch-wise stats, CTCs and selected students." />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://docs.google.com" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script>
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap topbar-row">
+        <a class="brand" href="#/">
+          <span class="brand-mark">DTU</span>
+          <span class="brand-text">
+            <strong>Placement Stats</strong>
+            <small>Unofficial · community compiled</small>
+          </span>
+        </a>
+        <nav class="season-switch" id="season-switch" aria-label="Season"></nav>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+      </div>
+      <nav class="wrap tabs" id="tabs" aria-label="Sections"></nav>
+    </header>
+
+    <main id="app" class="wrap" tabindex="-1">
+      <div class="skeleton" style="height: 220px"></div>
+    </main>
+
+    <dialog class="modal" id="company-dialog" aria-labelledby="company-dialog-title"></dialog>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          Unofficial numbers compiled by students from acceptance messages — expect gaps and typos.
+          The live season is read straight from the
+          <a id="footer-sheet" href="https://docs.google.com/spreadsheets/d/1E7CtZmrXG_YiV6bATHOLBa9NnSvvwh68MUqWdTsykL4/edit" target="_blank" rel="noopener">2027 Google Sheet</a>;
+          2026 comes from the Placement '26 sheet.
+        </p>
+        <p>Not affiliated with DTU or its Training &amp; Placement department.</p>
+      </div>
+    </footer>
+
+    <script src="assets/vendor/chart.umd.min.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+  </body>
+</html>

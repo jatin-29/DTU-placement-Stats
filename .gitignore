@@ -1,0 +1,5 @@
+node_modules/
+_site/
+*.xlsx
+.DS_Store
+__pycache__/
