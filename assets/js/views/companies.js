@@ -30,7 +30,7 @@ function filtered(m) {
   return list.sort(by);
 }
 
-// Profile tags first, then CGPA cut-off and offer types; at most three, then "+N".
+// Profile tags first, then CGPA cut-off and offer types; at most two, then "+N".
 function cardTags(c) {
   const tags = [
     ...c.catsPresent.map((k) => ({ html: html`<span class="tag"><i class="key ${catClass(k)}"></i>${k}</span>`, text: k })),
