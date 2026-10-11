@@ -23,7 +23,7 @@ function fingerprint(obj) {
 export async function loadArchive(id) {
   const season = CONFIG.seasons[id];
   const json = await fetchJson(season.data);
-  const s = { ...season, branchStrength: json.branchStrength, cgpaBands: json.cgpaBands };
+  const s = { ...season, branchStrength: json.branchStrength, cgpaBands: json.cgpaBands, branchCgpa: json.branchCgpa };
   return buildModel(s, applyOverrides(json.offers.map(finalizeOffer), season.overrides), archiveCompanyRows(json.companies), {
     source: 'archive',
     updated: json.updated,

@@ -19,6 +19,11 @@ the complete **2026 archive** (batch 2K22).
   recruiters for each branch.
 - **Students**: a searchable, sortable table of every offer. It filters by branch, profile,
   company, offer type and CGPA range, and exports to CSV.
+- **Eligibility** ("Where could I get in?"): enter a CGPA and branch to see which companies
+  were open to you (CGPA cut-off met, branch listed or someone from it selected), which
+  probably were (branches not listed), and which were out of reach and why. It also shows how
+  students from your branch in your half-point CGPA band did: their placement rate in 2026 and
+  where they got offers.
 - **2026 vs 2027**: the two seasons side by side, by branch, profile mix and recruiter.
 
 ## How the live updates work
@@ -79,6 +84,12 @@ in `assets/vendor`.
   the same programme.
 - In 2026, offers to M.Tech, MBA and other-batch students are grouped as `MISC`. They count
   in offers but not in B.Tech placement rates.
+- Eligibility reads the branches from each posting's "Eligible: ..." note
+  (`assets/js/lib/eligibility.js`). Where a drive lists none, a selection from your branch or
+  last season's list for the same company fills the gap. Pre-placement offers to returning
+  interns are not counted as drives. The "students like you" rates use per-branch counts of
+  the 2K22 batch in each half-point CGPA band (`branchCgpa` in `data/2026.json`); like the other
+  batch figures, only counts are published, never an individual's CGPA.
 - The 2026 archive corrects the sheet where the workbook itself shows it is wrong
   (`scripts/build_2026.py` lists every correction):
   - 13 wrong or missing roll numbers (11 pulled another student's CGPA)

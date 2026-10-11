@@ -45,6 +45,12 @@ CGPA_BANDS = [
     ("< 6.5", None, 6.5),
 ]
 
+# Finer half-point bands, counted per branch, for the eligibility checker's
+# "students like you" figures (counts only, like the bands above).
+BRANCH_CGPA_BANDS = [("< 5.0", None, 5.0)] + [
+    (f"{lo / 10:.1f} - {(lo + 5) / 10:.1f}", lo / 10, (lo + 5) / 10) for lo in range(50, 95, 5)
+] + [(">= 9.5", 9.5, None)]
+
 # Rows whose roll number was mistyped in "Detailed DATA", so the sheet's CGPA
 # lookup pulled another student's CGPA (and, on the site, merged two people).
 # Keyed by (name, roll as typed). Each correct roll is checked against the
@@ -420,6 +426,17 @@ def main(src, dst):
                 total += 1
         bands.append({"label": label, "min": lo, "max": hi, "total": total})
 
+    by_branch = {}
+    for r in cgpa_rows:
+        b, g = text(r[3]).upper(), num(r[10])
+        if not b or g is None or g <= 0:
+            continue
+        counts = by_branch.setdefault(b, [0] * len(BRANCH_CGPA_BANDS))
+        for i, (_, lo, hi) in enumerate(BRANCH_CGPA_BANDS):
+            if (lo is None or g >= lo) and (hi is None or g < hi):
+                counts[i] += 1
+                break
+
     postings_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "2026_postings.json")
     with open(postings_path, encoding="utf-8") as f:
         postings = json.load(f)
@@ -433,6 +450,10 @@ def main(src, dst):
         "source": "Community compiled from acceptance messages",
         "branchStrength": dict(sorted(strength.items())),
         "cgpaBands": bands,
+        "branchCgpa": {
+            "bands": [{"label": label, "min": lo, "max": hi} for label, lo, hi in BRANCH_CGPA_BANDS],
+            "counts": dict(sorted(by_branch.items())),
+        },
         "offers": offers,
         "companies": postings,
     }

@@ -1967,3 +1967,246 @@ main {
 .modal-head h2:focus {
   outline: none;
 }
+
+/* ---------- eligibility checker ---------- */
+.elig-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px 32px;
+  padding: 24px 26px;
+}
+.elig-intro h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.elig-intro p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 52ch;
+}
+.elig-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.elig-fields .input {
+  width: 130px;
+  font-variant-numeric: tabular-nums;
+}
+.elig-fields .select {
+  width: 340px;
+  max-width: 100%;
+}
+.elig-hint {
+  grid-column: 1 / -1;
+  margin: -8px 0 0;
+  color: var(--brand-text);
+  font-size: 12.5px;
+}
+.elig-hint:empty {
+  display: none;
+}
+.elig-empty {
+  margin-top: 16px;
+  padding: 36px 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--muted);
+}
+.elig-empty p {
+  margin: 0;
+}
+.elig-tiles {
+  margin-top: 16px;
+}
+.elig-tile {
+  padding: 18px 20px 16px;
+}
+.elig-tile .tile-value {
+  margin-top: 8px;
+}
+.elig-note {
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.elig-stat {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.elig-sub {
+  margin: 20px 0 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.elig-more {
+  align-self: center;
+  font-size: 12px;
+  padding-left: 4px;
+}
+.elig-table-toggle {
+  margin-top: 10px;
+  font-size: 13px;
+}
+.elig-table-toggle summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  width: max-content;
+}
+.elig-table-toggle summary:hover {
+  color: var(--ink);
+}
+.elig-band-table {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.elig-band-table th,
+.elig-band-table td {
+  padding: 6px 10px;
+}
+.elig-band-table tr.is-mine td {
+  font-weight: 700;
+  background: color-mix(in srgb, var(--measure) 10%, var(--surface));
+}
+.elig-toolbar {
+  margin-bottom: 14px;
+}
+.elig-unlock {
+  margin-bottom: 8px;
+}
+.elig-group {
+  margin-top: 22px;
+}
+.elig-group > h3,
+.elig-group > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 750;
+}
+.elig-group > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 16px;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.elig-group > summary::-webkit-details-marker {
+  display: none;
+}
+.elig-group > summary::after {
+  content: 'Show';
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.elig-group[open] > summary {
+  margin-bottom: 12px;
+}
+.elig-group[open] > summary::after {
+  content: 'Hide';
+}
+.elig-group-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.elig-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.elig-dot.is-eligible {
+  background: var(--good);
+}
+.elig-dot.is-likely {
+  background: transparent;
+  border: 2px solid var(--good);
+}
+.elig-dot.is-out {
+  background: var(--muted);
+}
+.elig-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 650;
+}
+.elig-group-sub {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.elig-short {
+  color: var(--brand-text);
+  font-weight: 650;
+}
+.elig-roles {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.elig-expand {
+  display: flex;
+  margin: 10px auto 0;
+}
+.elig-tag {
+  height: 20px;
+  padding: 0 7px;
+  margin-right: 4px;
+  font-size: 10.5px;
+  vertical-align: 1px;
+}
+.elig-foot {
+  margin: 22px 2px 0;
+  max-width: 90ch;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+@media (max-width: 760px) {
+  .elig-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+  .elig-fields .input {
+    width: 110px;
+  }
+  .elig-fields .select {
+    width: 100%;
+  }
+  .elig-fields .field:last-child {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+}
