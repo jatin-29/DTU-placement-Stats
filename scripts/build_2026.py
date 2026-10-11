@@ -225,7 +225,7 @@ def main(src, dst):
         "season": "2026",
         "batch": "2K22",
         "updated": UPDATED_ON,
-        "source": "Placement'26 Unoff Stats (community compiled from acceptance messages)",
+        "source": "Community compiled from acceptance messages",
         "branchStrength": dict(sorted(strength.items())),
         "cgpaBands": bands,
         "offers": offers,

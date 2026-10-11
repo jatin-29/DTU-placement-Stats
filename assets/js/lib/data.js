@@ -52,15 +52,10 @@ export async function loadLive(id) {
     fetchSheetTab(season.sheetId, season.tabs.students),
     fetchSheetTab(season.sheetId, season.tabs.companies).catch(() => []),
   ]);
-  if (!students.length) throw new Error('The Students tab came back empty');
+  if (!students.length) throw new Error('No data came back');
   return modelFromTabs(
     season,
     { [season.tabs.students]: students, [season.tabs.companies]: companies },
     { source: 'live', fetchedAt: new Date() },
   );
-}
-
-export function sheetUrl(id) {
-  const season = CONFIG.seasons[id];
-  return season.sheetId ? `https://docs.google.com/spreadsheets/d/${season.sheetId}/edit` : season.sourceUrl;
 }

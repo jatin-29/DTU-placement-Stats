@@ -143,7 +143,7 @@ export function renderDashboard(root, m, ctx) {
     </div>
     <div style="margin-top:14px">${branchMatrix(m, ctx)}</div>
 
-    <div class="section-title"><h2>Recruiters</h2><p>${live ? 'Updates automatically as the sheet changes' : 'Final numbers for the season'}</p></div>
+    <div class="section-title"><h2>Recruiters</h2><p>${live ? 'Updates automatically' : 'Final numbers for the season'}</p></div>
     <div class="grid-2">
       ${chartCard('ch-top', 'Top recruiters by intake', 'Offers per company · colour shows the main profile · click to open', { size: 'is-tall', legend: catLegend() })}
       <section class="panel chart-card">

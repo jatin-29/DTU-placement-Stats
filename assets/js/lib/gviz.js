@@ -16,12 +16,12 @@ export function parseGviz(payload) {
   if (typeof payload === 'string') {
     const start = payload.indexOf('{');
     const end = payload.lastIndexOf('}');
-    if (start < 0 || end < start) throw new Error('Unexpected response from Google Sheets');
+    if (start < 0 || end < start) throw new Error('Unexpected response from the data source');
     obj = JSON.parse(payload.slice(start, end + 1));
   }
   if (obj.status === 'error') {
     const msg = (obj.errors || []).map((e) => e.detailed_message || e.message).join('; ');
-    throw new Error(msg || 'Google Sheets returned an error');
+    throw new Error(msg || 'The data source returned an error');
   }
   const table = obj.table || { cols: [], rows: [] };
   let headers = table.cols.map((c) => String(c.label || '').trim());
@@ -77,7 +77,7 @@ function jsonp(sheetId, tab, timeoutMs) {
     };
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error('Timed out reading Google Sheets'));
+      reject(new Error('Timed out'));
     }, timeoutMs);
     window[cb] = (data) => {
       cleanup();
@@ -85,7 +85,7 @@ function jsonp(sheetId, tab, timeoutMs) {
     };
     script.onerror = () => {
       cleanup();
-      reject(new Error('Could not reach Google Sheets'));
+      reject(new Error('Network error'));
     };
     script.src = gvizUrl(sheetId, tab, `out:json;responseHandler:${cb}`);
     document.head.appendChild(script);

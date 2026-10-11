@@ -1,7 +1,7 @@
 # DTU Placement Stats
 
-An unofficial dashboard of DTU campus placements: the **2027 season, read live from the
-community Google Sheet**, and the complete **2026 archive** (batch 2K22).
+An unofficial dashboard of DTU campus placements: the **2027 season, updated live**, and
+the complete **2026 archive** (batch 2K22).
 
 **Site:** https://jatin-29.github.io/DTU-placement-Stats/
 
@@ -23,10 +23,10 @@ community Google Sheet**, and the complete **2026 archive** (batch 2K22).
 
 ## How the live updates work
 
-The page reads the [2027 sheet](https://docs.google.com/spreadsheets/d/1E7CtZmrXG_YiV6bATHOLBa9NnSvvwh68MUqWdTsykL4/edit)
-directly in the visitor's browser through Google's public visualization endpoint. It needs no
-API key and no rebuild. It reads the **Students** and **Companies** tabs, refreshes every
-5 minutes while the page is open, and has a **Refresh** button for an immediate re-read.
+The data source is set in `assets/js/config.js`. The page reads it directly in the
+visitor's browser, so it needs no API key and no rebuild. It reads the **Students** and
+**Companies** tabs, refreshes every 5 minutes while the page is open, and has a **Refresh**
+button for an immediate re-read. The site itself never names or links the source.
 
 For this to keep working:
 
@@ -37,7 +37,7 @@ For this to keep working:
   Stipend, CTC, Base, Category, Branch / Count, Comments), so adding or reordering columns
   is fine.
 
-If Google can't be reached, the site falls back to `data/2027.json`. The deploy workflow
+If the source can't be reached, the site falls back to `data/2027.json`. The deploy workflow
 refreshes that snapshot from the sheet every hour.
 
 ## Deploying (GitHub Pages)
@@ -67,9 +67,8 @@ in `assets/vendor`.
   `config.js`.
 - **Branch strength and CGPA bands** (the denominators for "% placed") are in
   `assets/js/config.js`, taken from the sheet's Analytics tab.
-- **2026 archive.** `data/2026.json` is built from the *Placement'26 Unoff Stats* sheet with
-  `scripts/build_2026.py`. Only aggregate counts are taken from that sheet's whole-batch
-  CGPA list.
+- **2026 archive.** `data/2026.json` is built with `scripts/build_2026.py`. Only aggregate
+  counts are taken from the whole-batch CGPA list.
 
 ## Data notes
 

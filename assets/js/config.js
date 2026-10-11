@@ -44,7 +44,6 @@ export const CONFIG = {
       live: false,
       // Frozen archive built by scripts/build_2026.py (includes branch strength & CGPA bands).
       data: 'data/2026.json',
-      sourceUrl: 'https://placement26stats.vercel.app/',
     },
   },
 };

@@ -1,7 +1,7 @@
 // App shell: routing, season loading, live refresh and the status bar.
 
 import { CONFIG, SEASON_IDS } from './config.js';
-import { loadArchive, loadLive, loadSnapshot, sheetUrl } from './lib/data.js';
+import { loadArchive, loadLive, loadSnapshot } from './lib/data.js';
 import { destroyCharts } from './lib/charts.js';
 import { ICONS, escapeHtml, html, timeAgo } from './lib/dom.js';
 import { installLogoFallbacks } from './lib/logos.js';
@@ -105,7 +105,7 @@ async function refreshLive(id, { manual = false } = {}) {
   } catch (e) {
     errors[id] = e;
     if (manual || models[id]) updateStatus();
-    console.warn('Live sheet read failed:', e);
+    console.warn('Live data refresh failed:', e);
   } finally {
     refreshing = false;
     updateRefreshButton();
@@ -147,17 +147,15 @@ function statusHtml(id) {
   let pill = '';
   if (!m) pill = '<span class="pill">Loading…</span>';
   else if (m.meta.source === 'live')
-    pill = `<span class="pill" title="Read from Google Sheets"><span class="live-dot"></span>Live · synced <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
+    pill = `<span class="pill" title="Updates automatically"><span class="live-dot"></span>Live · synced <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
   else if (m.meta.source === 'snapshot')
-    pill = `<span class="pill is-warn" title="${escapeHtml(err ? `Google Sheets unreachable: ${err.message}` : 'Connecting to Google Sheets…')}">${err ? 'Offline copy' : 'Connecting…'} · data from <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
+    pill = `<span class="pill is-warn" title="${escapeHtml(err ? `Couldn't fetch the latest data: ${err.message}` : 'Fetching the latest data…')}">${err ? 'Offline copy' : 'Connecting…'} · data from <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
   else pill = `<span class="pill">Final · updated ${escapeHtml(m.meta.updated || '')}</span>`;
 
   const actions = [];
   if (season.live) {
     actions.push(`<button class="btn" type="button" data-action="refresh" ${refreshing ? 'disabled' : ''}>${ICONS.refresh}<span>Refresh</span></button>`);
   }
-  const src = sheetUrl(id);
-  if (src) actions.push(`<a class="btn" href="${src}" target="_blank" rel="noopener">${ICONS.external}<span>${season.live ? 'Open sheet' : 'Source'}</span></a>`);
 
   return `
     <h1>${escapeHtml(season.label)}</h1>
