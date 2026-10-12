@@ -104,11 +104,13 @@ function cleanRoll(v) {
   return r === 'NONE' || r === '#N/A' ? '' : r;
 }
 
-// Names typed in ALL CAPS read better in title case.
+// Names typed in ALL CAPS read better in title case; words typed in lower
+// case ("Samarbir singh") get a capital.
 export function niceName(v) {
   const s = text(v);
-  if (!s || s !== s.toUpperCase() || !/[A-Z]/.test(s)) return s;
-  return s.toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
+  if (!s || !/[A-Za-z]/.test(s)) return s;
+  const base = s === s.toUpperCase() ? s.toLowerCase() : s;
+  return base.replace(/(^|[\s.'-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
 }
 
 // ---------- companies ----------

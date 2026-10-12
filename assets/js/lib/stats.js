@@ -53,6 +53,24 @@ function inBand(cgpa, band) {
   return (band.min === null || cgpa >= band.min) && (band.max === null || cgpa < band.max);
 }
 
+// The newest results. Selections arrive as a block of rows per company,
+// appended at the end, so walk back from the last row and group consecutive
+// rows of the same company. Newest batch first.
+export function recentBatches(offers, limit = 6) {
+  const batches = [];
+  for (let i = offers.length - 1; i >= 0; i--) {
+    const o = offers[i];
+    const last = batches[batches.length - 1];
+    if (last && last.companyKey === o.companyKey) {
+      last.offers.unshift(o);
+      continue;
+    }
+    if (batches.length === limit) break;
+    batches.push({ companyKey: o.companyKey, offers: [o] });
+  }
+  return batches;
+}
+
 export function buildModel(season, offers, companyRows = [], meta = {}) {
   const strength = season.branchStrength || {};
   const batchTotal = Object.values(strength).reduce((a, b) => a + b, 0);

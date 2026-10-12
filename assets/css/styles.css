@@ -2223,3 +2223,123 @@ main {
     min-width: 0;
   }
 }
+
+/* ---------- recently placed (dashboard) ---------- */
+.recent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1000px) {
+  .recent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .recent-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px 20px 14px;
+}
+.recent-card.is-latest {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  box-shadow: inset 0 3px 0 var(--brand), var(--shadow), var(--highlight);
+}
+.recent-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.recent-head .company-link {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 15.5px;
+  font-weight: 750;
+  color: var(--ink);
+  text-decoration: none;
+}
+.recent-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent-badge {
+  flex: none;
+  height: 22px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--good) 30%, transparent);
+  background: color-mix(in srgb, var(--good) 10%, var(--surface));
+  color: var(--good);
+}
+.recent-badge.is-latest {
+  border-color: color-mix(in srgb, var(--brand) 30%, transparent);
+  background: color-mix(in srgb, var(--brand) 9%, var(--surface));
+  color: var(--brand-text);
+}
+.recent-meta {
+  margin: 8px 0 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent-students {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  flex: 1 1 auto;
+}
+.recent-students li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  font-size: 13.5px;
+}
+.recent-student {
+  min-width: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.recent-role {
+  display: block;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.recent-facts {
+  flex: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.recent-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.recent-foot a {
+  color: var(--brand-text);
+  text-decoration: none;
+}

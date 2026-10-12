@@ -1,5 +1,6 @@
 import { BRANCHES, CATEGORIES } from '../config.js';
 import { barChart, catColor, palette } from '../lib/charts.js';
+import { recentBatches } from '../lib/stats.js';
 import { catClass, catVar, fmt, html, raw } from '../lib/dom.js';
 import { logoHtml } from '../lib/logos.js';
 
@@ -110,6 +111,79 @@ function categorySummary(m) {
   </div>`;
 }
 
+// "New since your last visit": the batches shown last time, remembered in this
+// browser only. Read once per page load so badges last for the whole visit.
+const SEEN_KEY = (id) => `recent-seen-${id}`;
+const seenBefore = {};
+function previousVisit(id) {
+  if (!(id in seenBefore)) {
+    try {
+      const v = JSON.parse(localStorage.getItem(SEEN_KEY(id)) || 'null');
+      seenBefore[id] = Array.isArray(v) ? new Set(v) : null;
+    } catch (e) {
+      seenBefore[id] = null;
+    }
+  }
+  return seenBefore[id];
+}
+function rememberVisit(id, keys) {
+  try {
+    localStorage.setItem(SEEN_KEY(id), JSON.stringify(keys));
+  } catch (e) {
+    /* storage unavailable */
+  }
+}
+
+const STUDENTS_SHOWN = 8;
+
+function recentSection(m, ctx) {
+  const batches = recentBatches(m.offers, 6);
+  if (!batches.length) return '';
+  const sId = m.season.id;
+  const keyOf = (o) => `${o.studentKey}|${o.companyKey}`;
+  const before = previousVisit(sId);
+  rememberVisit(sId, batches.flatMap((b) => b.offers.map(keyOf)));
+
+  const cards = batches.map((b, i) => {
+    const c = m.companyByKey.get(b.companyKey);
+    const fresh = before && b.offers.some((o) => !before.has(keyOf(o)));
+    const roles = [...new Set(b.offers.map((o) => o.role).filter(Boolean))];
+    const offerTypes = [...new Set(b.offers.map((o) => o.offer).filter(Boolean))];
+    const ctcs = b.offers.map((o) => o.ctc).filter((x) => x !== null);
+    const ctc = ctcs.length ? Math.max(...ctcs) : null;
+    // With several roles, each student shows their own and the summary just counts them.
+    const perRole = roles.length > 1;
+    const meta = [perRole ? `${roles.length} roles` : roles[0], offerTypes.join(', '), ctc !== null ? `${fmt.n2(ctc)} LPA` : '']
+      .filter(Boolean)
+      .join(' · ');
+    const shown = b.offers.slice(0, STUDENTS_SHOWN);
+    return html`<article class="panel recent-card ${i === 0 ? 'is-latest' : ''}">
+      <div class="recent-head">
+        <a class="company-link" href="${ctx.hrefFor(sId, 'companies', c.slug)}">${raw(logoHtml(c, 'md'))}<span class="recent-name">${c.name}</span></a>
+        ${i === 0 ? html`<span class="recent-badge is-latest">Latest</span>` : ''}
+        ${fresh ? html`<span class="recent-badge is-new" title="Added since your last visit">New</span>` : ''}
+      </div>
+      <p class="recent-meta" title="${meta}">${meta || '—'}</p>
+      <ul class="recent-students">
+        ${shown.map(
+          (o) => html`<li>
+            <span class="recent-student">${o.name}${perRole && o.role ? html`<span class="recent-role">${o.role}</span>` : ''}</span>
+            <span class="recent-facts">${o.branch}${o.cgpa !== null ? html` · ${fmt.cgpa(o.cgpa)}` : ''}</span>
+          </li>`,
+        )}
+      </ul>
+      <div class="recent-foot">
+        <span>${fmt.int(b.offers.length)} selected</span>
+        ${b.offers.length > STUDENTS_SHOWN ? html`<a href="${ctx.hrefFor(sId, 'companies', c.slug)}">+${fmt.int(b.offers.length - STUDENTS_SHOWN)} more →</a>` : ''}
+      </div>
+    </article>`;
+  });
+  const total = batches.reduce((a, b) => a + b.offers.length, 0);
+  return html`
+    <div class="section-title"><h2>Recently placed</h2><p>The latest ${fmt.int(total)} selections, newest first · these stay here until new results come in</p></div>
+    <div class="recent-grid">${cards}</div>`;
+}
+
 export function renderDashboard(root, m, ctx) {
   const t = m.totals;
   const s = m.season;
@@ -139,6 +213,8 @@ export function renderDashboard(root, m, ctx) {
         ${tile('Average stipend', t.avgStipend ? fmt.n1(t.avgStipend) : '—', t.avgStipend ? 'K/mo' : '', 'internship offers')}
       </div>
     </section>
+
+    ${live ? recentSection(m, ctx) : ''}
 
     <div class="section-title"><h2>Branch-wise placements</h2><p>Tech, non-tech and core offers per branch</p></div>
     <div class="grid-2">

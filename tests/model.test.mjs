@@ -77,3 +77,15 @@ test('season overrides win over sheet values', async () => {
   const hiten = offers.filter((x) => x.roll === '23/EE/355');
   assert.ok(hiten.length >= 1 && hiten.every((x) => x.cgpa === 8.4 && x.name === 'Hiten Sharma'));
 });
+
+test('recently placed: newest company batches from the end', async () => {
+  const { recentBatches } = await import('../assets/js/lib/stats.js');
+  const o = (company, name) => ({ companyKey: company, name });
+  const rows = [o('a', 1), o('b', 2), o('b', 3), o('c', 4), o('a', 5), o('a', 6)];
+  assert.deepEqual(
+    recentBatches(rows, 3).map((b) => [b.companyKey, b.offers.map((x) => x.name)]),
+    [['a', [5, 6]], ['c', [4]], ['b', [2, 3]]],
+  );
+  assert.equal(recentBatches(rows, 10).length, 4);
+  assert.deepEqual(recentBatches([], 6), []);
+});
