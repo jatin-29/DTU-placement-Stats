@@ -279,12 +279,13 @@ h4 {
   color: var(--brand-ink);
   display: grid;
   place-items: center;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.06em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(70, 10, 20, 0.25),
     0 6px 14px -6px color-mix(in srgb, var(--brand) 70%, transparent);
+}
+/* the favicon's three rising bars, drawn on the same 64-unit grid */
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
 }
 .brand-text {
   display: flex;
@@ -1825,20 +1826,16 @@ footer p {
   max-width: 640px;
 }
 footer p:first-child::before {
-  content: 'DTU';
-  display: inline-grid;
-  place-items: center;
+  content: '';
+  display: inline-block;
+  width: 20px;
   height: 20px;
-  padding: 0 6px;
   margin-right: 10px;
   border-radius: 5px;
-  background: var(--brand);
-  color: var(--brand-ink);
-  font-family: var(--font-display);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  vertical-align: 1px;
+  background: var(--brand)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='%23fff'%3E%3Crect x='14' y='34' width='8' height='16' rx='2'/%3E%3Crect x='28' y='24' width='8' height='26' rx='2'/%3E%3Crect x='42' y='14' width='8' height='36' rx='2'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  vertical-align: -5px;
 }
 footer a {
   color: var(--ink-2);
