@@ -29,7 +29,7 @@ const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const DAY = 86400000;
 const MIN_SIZE = 32;
 // Bump when the sources change, so earlier misses are retried straight away.
-const SOURCES_VERSION = 3;
+const SOURCES_VERSION = 4;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 // ---------- which domains ----------
@@ -81,13 +81,13 @@ function imageSize(buf) {
   return null;
 }
 
-async function get(url, ms = 15000) {
-  return fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': UA, accept: '*/*' } });
+async function get(url, ms = 15000, ua = UA) {
+  return fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': ua, accept: '*/*' } });
 }
 
-async function tryFetch(url) {
+async function tryFetch(url, ua) {
   try {
-    const res = await get(url);
+    const res = await get(url, 15000, ua);
     const type = res.headers.get('content-type') || '';
     if (!res.ok || (type && !/^image\/|octet-stream/.test(type))) return null;
     const buf = Buffer.from(await res.arrayBuffer());
@@ -152,6 +152,46 @@ async function siteIcons(domain) {
   return null;
 }
 
+// Big companies whose sites refuse automated requests: the logo at the top of
+// their Wikipedia article. Only an SVG, or a file named "...logo...", is taken,
+// so a photo of a head office never is.
+const WIKIPEDIA = {
+  'amd.com': 'AMD',
+  'verizon.com': 'Verizon',
+  'blackrock.com': 'BlackRock',
+  'deshaw.com': 'D. E. Shaw & Co.',
+  'natwestgroup.com': 'NatWest Group',
+  'marutisuzuki.com': 'Maruti Suzuki',
+  'airtel.in': 'Bharti Airtel',
+  'havells.com': 'Havells',
+  'itcportal.com': 'ITC Limited',
+  'fluor.com': 'Fluor Corporation',
+  'cadence.com': 'Cadence Design Systems',
+  'samsungena.com': 'Samsung E&A',
+  'tataadvancedsystems.com': 'Tata Advanced Systems',
+  'axtria.com': 'Axtria',
+  'joveo.com': 'Joveo',
+};
+const WIKI_UA = 'DTU-placement-stats logo bundler (https://github.com/jatin-29/DTU-placement-Stats)';
+
+async function wikipediaLogo(domain) {
+  const title = WIKIPEDIA[domain];
+  if (!title) return null;
+  try {
+    const res = await get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`, 15000, WIKI_UA);
+    if (!res.ok) return null;
+    const page = await res.json();
+    const original = page.originalimage?.source || '';
+    const thumb = page.thumbnail?.source || '';
+    const looksLikeLogo = (u) => /\.svg(\.png)?$/i.test(u) || /logo/i.test(decodeURIComponent(u.split('/').pop() || ''));
+    if (/\.svg$/i.test(original)) return await tryFetch(original, WIKI_UA);
+    if (thumb && looksLikeLogo(thumb)) return await tryFetch(thumb, WIKI_UA);
+  } catch {
+    /* no article or no logo */
+  }
+  return null;
+}
+
 const SOURCES = [
   (d) => tryFetch(`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`),
   (d) => siteIcons(d),
@@ -160,6 +200,7 @@ const SOURCES = [
   // Aggregators; both answer 404 (not a placeholder) when they have nothing.
   (d) => tryFetch(`https://unavatar.io/${d}?fallback=false`),
   (d) => tryFetch(`https://logo.clearbit.com/${d}?size=128`),
+  (d) => wikipediaLogo(d),
   (d) => tryFetch(`https://${d}/apple-touch-icon.png`),
   (d) => tryFetch(`https://www.${d}/apple-touch-icon.png`),
 ];
