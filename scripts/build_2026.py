@@ -438,21 +438,65 @@ def main(src, dst):
             if (lo is None or g >= lo) and (hi is None or g < hi):
                 counts[i] += 1
                 break
-    branch_cgpa = {}
+    # 1. Per branch, merge half-point bands upwards until each holds MIN_CELL students.
+    branch_edges = {}
     for b, counts in sorted(by_branch.items()):
-        merged = []
-        lo, total = half_bands[0][0], 0
+        cuts, total = [], 0
         for (_, hi), n in zip(half_bands, counts):
             total += n
-            if total >= MIN_CELL:
-                merged.append({"min": lo, "max": hi, "total": total})
-                lo, total = hi, 0
-        if not merged:
-            merged.append({"min": None, "max": None, "total": 0})
-        # A short top band joins the one below it; the top band is open-ended.
-        merged[-1]["total"] += total
-        merged[-1]["max"] = None
-        branch_cgpa[b] = merged
+            if total >= MIN_CELL and hi is not None:
+                cuts.append(hi)
+                total = 0
+        if total < MIN_CELL and cuts:  # a short (or empty) top band joins the one below it
+            cuts.pop()
+        branch_edges[b] = cuts
+    # 2. The batch-wide bands above are published too. For any span of them, the
+    #    batch count minus every published branch band that lies inside the span
+    #    leaves the students in bands that cross its ends. Keep that remainder at 0
+    #    or >= MIN_CELL by also merging a branch across one end of the span (the
+    #    cheapest such merge), so subtraction never isolates a small group.
+    cell_total = lambda b, lo, hi: sum(
+        n for (l, h), n in zip(half_bands, by_branch[b])
+        if (lo is None or (l is not None and l >= lo)) and (hi is None or (h is not None and h <= hi)))
+    points = [None] + sorted({x for _, lo, hi in CGPA_BANDS for x in (lo, hi) if x is not None}) + [None]
+    def inside(b, lo, hi):  # students in b's published bands that lie wholly within [lo, hi)
+        edges = [None] + branch_edges[b] + [None]
+        return sum(
+            cell_total(b, l, h) for l, h in zip(edges, edges[1:])
+            if (lo is None or (l is not None and l >= lo)) and (hi is None or (h is not None and h <= hi)))
+    def leak():
+        for i in range(len(points)):
+            for j in range(i + 1, len(points)):
+                lo, hi = points[i], points[j]
+                if lo is None and hi is None:
+                    continue
+                res = [b for b in by_branch if (lo is None or lo in branch_edges[b]) and (hi is None or hi in branch_edges[b])]
+                left = sum(cell_total(b, lo, hi) - inside(b, lo, hi) for b in by_branch if b not in res)
+                if 0 < left < MIN_CELL:
+                    return lo, hi, res, left
+        return None
+    while (found := leak()):
+        lo, hi, res, left = found
+        options = []
+        for b in res:
+            for e in (lo, hi):
+                if e is None:
+                    continue
+                k = branch_edges[b].index(e)
+                below = branch_edges[b][k - 1] if k else None
+                above = branch_edges[b][k + 1] if k + 1 < len(branch_edges[b]) else None
+                merged_size = cell_total(b, below, above)
+                options.append((left + cell_total(b, lo, hi) < MIN_CELL, merged_size, b, e))
+        if not options:
+            sys.exit(f"cannot protect CGPA band {lo}-{hi}")
+        _, _, b, e = min(options)
+        if os.environ.get("DEBUG_BANDS"):
+            print(f"  span {lo}-{hi}: {left} student(s) left over; merge {b} across {e}")
+        branch_edges[b].remove(e)
+    branch_cgpa = {}
+    for b, cuts in branch_edges.items():
+        edges = [None] + cuts + [None]
+        branch_cgpa[b] = [{"min": l, "max": h, "total": cell_total(b, l, h)} for l, h in zip(edges, edges[1:])]
 
     postings_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "2026_postings.json")
     with open(postings_path, encoding="utf-8") as f:

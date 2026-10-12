@@ -69,20 +69,34 @@ export function eligibilityWords(clause) {
   );
 }
 
-// A bare list of branch codes with no "Eligible:" in front: a comment segment
-// such as "Gurugram, ENE", or a role such as "Graduate Engineering Trainee - ME, CH".
-// Every word must be a branch; `min` words guard against "Analyst - IT" (the IT function).
-function codeList(text, min) {
-  const parts = String(text || '').split(min > 1 ? /\s[-–]\s?|[-–]\s|[()]/ : /[;,]\s*(?![^()]*\))|[()]/);
-  for (const part of min > 1 ? parts : [parts.filter((p) => isCodeList(p, 1)).join(', ')]) {
-    if (isCodeList(part, min)) return part.trim();
+// Branch codes written without "Eligible:" in front.
+// In the comments: comma-separated codes in capitals ("Gurugram, ENE, CE"), but
+// not a lone two-letter one ("Delhi, IT" may be the IT function) and not inside
+// another programme's brackets ("MTech (CSE, SWE)"). Full words ("Software")
+// don't count there, since comments use them for job areas.
+function commentCodes(comments) {
+  const s = String(comments || '').replace(/\b(M\.?\s*Tech|M\.?\s*Sc|MBA|PhD|M\.?\s*Des)\s*\([^)]*\)/gi, ' ');
+  const segs = s.split(/[;,()]/).map((p) => p.trim()).filter((p) => codeWords(p, true));
+  const ws = segs.flatMap((p) => codeWords(p, true));
+  return ws.length > 1 || (ws.length === 1 && ws[0].length >= 3) ? segs.join(', ') : '';
+}
+// In a role name: the part after " - " or in brackets ("Graduate Engineering
+// Trainee - ME, CH", "GET (Electronics / Mechanical / IT)"). Two branches at
+// least, or one code after "Core -" ("Field Application Engineer (Core - ECE)").
+function roleCodes(role) {
+  const r = String(role || '');
+  const core = /\bcore\s*[-–]/i.test(r);
+  for (const part of r.replace(/&?\s*\brelated\b/gi, ' ').split(/\s[-–]\s?|[-–]\s|[()]/)) {
+    const ws = codeWords(part, false);
+    if (ws && (ws.length > 1 || (core && ws[0].length >= 3))) return part.trim();
   }
   return '';
 }
-function isCodeList(part, min) {
+// The words of `part` if every one names a branch, else null.
+function codeWords(part, abbreviationsOnly) {
   const ws = part.split(/[\s,/&]+/).filter(Boolean);
-  if (!ws.length || ws.some((w) => !(w.toUpperCase() in BRANCH_WORDS) || (w.length <= 3 && w !== w.toUpperCase()))) return false;
-  return ws.length >= min && (ws.length > 1 || ws[0].length >= 3);
+  const ok = (w) => w.toUpperCase() in BRANCH_WORDS && (w.length <= 3 ? w === w.toUpperCase() : !abbreviationsOnly);
+  return ws.length && ws.every(ok) ? ws : null;
 }
 
 // -> { kind: 'all' | 'list' | 'none' | 'unknown', branches: [codes], except: [codes], text }
@@ -91,11 +105,13 @@ function isCodeList(part, min) {
 //   none     open to other programmes only
 //   unknown  nothing listed, or "multiple" / "varies by role"
 export function parseEligibility(comments, role = '') {
-  const text = eligibilityClause(comments) || codeList(comments, 1) || codeList(role, 2);
+  const text = eligibilityClause(comments) || commentCodes(comments) || roleCodes(role);
   const out = { kind: 'unknown', branches: [], except: [], text };
   if (!text) return out;
-  // "Btech/BCA/BE + MBA": a degree plus an MBA, so not open to B.Tech students.
-  if (/\+\s*MBA\b/i.test(text)) return { ...out, kind: 'none' };
+  // "Btech/BCA/BE + MBA": a degree plus an MBA, so not open to B.Tech students
+  // (but "BTech (CSE, IT), MTech + MBA" still lists B.Tech branches).
+  const beforeMba = text.split(/\+\s*MBA\b/i)[0];
+  if (beforeMba !== text && !words(beforeMba).some((w) => w in BRANCH_WORDS || ALL_WORDS.has(w))) return { ...out, kind: 'none' };
 
   let programme = null; // null until a programme is named; 'B' for B.Tech, 'O' for others
   let all = false;
@@ -149,7 +165,7 @@ export function eligibilityNotes(comments) {
   // Backlog rules, school-marks cut-offs (a non-zero %), age limits.
   if (
     /backlog|\bborn on\b/i.test(s) ||
-    /\b(10|12)th\b[^.;]*?\b[1-9]\d\s*%|\bclass\s*(10|12)(th)?\b[^.;]*?\b[1-9]\d\s*%|\b(10|12)(th|%)\s*[:\-–]\s*[1-9]\d\b/i.test(s) ||
+    /\b(10|12)th\b[^.;]*?\b[1-9]\d\s*%|\bclass\s*(10|12)(th)?\b[^.;]*?\b[1-9]\d\s*%|\b(10|12)th\s*[:\-–]\s*[1-9]\d\b|\b(10|12)%\s*:\s*[1-9]\d\b/i.test(s) ||
     /\b[1-9]\d\s*%\s*((or|&|and)\s*above|throughout|in\s*(10|12)th\b)/i.test(s)
   ) notes.push('Other criteria');
   return notes;
@@ -166,9 +182,17 @@ const EPS = 1e-9;
 
 // Pre-placement offers to returning interns, and hires through off-campus
 // challenges ("via HackWithInfy", "Hackathon Convert"), are not campus drives.
-const NOT_A_DRIVE = /\b(intern|hackathon)\s+convert|^\s*via\s+/i;
+const NOT_A_DRIVE = /\b(intern|hackathon)\s+convert|^\s*via\s+|hackwithinfy/i;
 export const isConversion = (role) => role.offer === 'PPO' || NOT_A_DRIVE.test(role.comments || '');
-const isConversionOffer = (o) => o.offer === 'PPO';
+
+// Which of a company's offers came that way: PPOs, and offers for a role that
+// the company filled only through a conversion or an off-campus route.
+export function conversionOffers(company) {
+  const norm = (s) => String(s || '').trim().toLowerCase();
+  const offRoute = new Set(company.roles.filter(isConversion).map((r) => norm(r.role)));
+  const onRoute = new Set(company.roles.filter((r) => !isConversion(r)).map((r) => norm(r.role)));
+  return (o) => o.offer === 'PPO' || (offRoute.has(norm(o.role)) && !onRoute.has(norm(o.role)));
+}
 
 // What a company's postings (and selections) said about a branch, for hints
 // from the previous season: 'yes', 'no' or null, plus the list as text.
@@ -177,11 +201,13 @@ export function companyBranchListing(company, branch) {
   const parsed = company.roles.filter((r) => !isConversion(r)).map((r) => parseEligibility(r.comments, r.role));
   const listed = parsed.filter((e) => e.kind === 'all' || e.kind === 'list');
   const text = !listed.length ? null : listed.some((e) => e.kind === 'all') ? 'All branches' : [...new Set(listed.flatMap((e) => e.branches))].join(', ');
-  const selected = company.offers.some((o) => !isConversionOffer(o) && unifyBranch(o.branch) === b);
-  if (selected || listed.some((e) => e.kind === 'all' || e.branches.includes(b))) return { says: 'yes', text };
+  const isConv = conversionOffers(company);
+  const selected = company.offers.some((o) => !isConv(o) && unifyBranch(o.branch) === b);
+  const listedYes = listed.some((e) => e.kind === 'all' || e.branches.includes(b));
+  if (selected || listedYes) return { says: 'yes', text, listedYes };
   // "no" only when every drive listed its branches.
-  if (listed.length && listed.length === parsed.length) return { says: 'no', text };
-  return { says: null, text };
+  if (listed.length && listed.length === parsed.length) return { says: 'no', text, listedYes };
+  return { says: null, text, listedYes };
 }
 
 // Status of one company for a student.
@@ -195,7 +221,8 @@ export function companyBranchListing(company, branch) {
 // prevCompany: the same company in the previous season, if any (hints only).
 export function checkCompany(company, { cgpa, branch }, prevCompany = null) {
   const b = unifyBranch(branch);
-  const drives = company.offers.filter((o) => !isConversionOffer(o));
+  const isConv = conversionOffers(company);
+  const drives = company.offers.filter((o) => !isConv(o));
   const fromBranch = drives.filter((o) => unifyBranch(o.branch) === b).length;
   const selectedAt = drives.map((o) => o.cgpa).filter((x) => x !== null);
   const lowestSelected = selectedAt.length ? Math.min(...selectedAt) : null;
@@ -205,11 +232,15 @@ export function checkCompany(company, { cgpa, branch }, prevCompany = null) {
   const result = {
     company, status: 'unlisted', roles: [], cutoff: null, fromBranch, lowestSelected, cutoffSource: null,
     branchSource: null, listing: null, notes: [], prevSays: prev?.says || null, prevListing: prev?.text || null,
+    prevListedYes: !!prev?.listedYes,
   };
   const roles = company.roles.filter((r) => !isConversion(r));
   if (!roles.length) {
     if (company.roles.length || (company.offers.length && !drives.length)) result.status = 'conversion';
-    else if (fromBranch > 0) Object.assign(result, { status: 'likely', branchSource: 'selected', cutoffSource: 'none-on-record' });
+    // No postings on record: selections stand in for both criteria.
+    else if (fromBranch > 0) {
+      Object.assign(result, { status: cgpaShown ? 'eligible' : 'likely', branchSource: 'selected', cutoffSource: cgpaShown ? 'selected' : 'none-on-record' });
+    }
     return result;
   }
 
@@ -253,9 +284,14 @@ export function checkCompany(company, { cgpa, branch }, prevCompany = null) {
   else if (likely.length) pick('likely', likely);
   else if (below.length) pick('below', below);
   else if (fromBranch > 0) {
-    // Every listed drive excludes the branch, yet someone from it was selected
-    // (another drive, or a list that was incomplete).
-    pick('likely', evaluated);
+    // Every listed drive leaves the branch out, yet someone from it was selected:
+    // the list was incomplete, or another drive ran whose cut-off isn't known.
+    const reach = evaluated.filter((x) => x.cg !== 'below');
+    if (reach.length) {
+      pick('likely', reach);
+      result.cutoff = null;
+      result.cutoffSource = cgpaShown ? 'selected' : 'none-on-record';
+    } else pick('below', evaluated);
     result.branchSource = 'selected-despite-list';
   } else pick('branch', evaluated);
   return result;

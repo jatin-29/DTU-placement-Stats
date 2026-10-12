@@ -5,7 +5,7 @@ import { BRANCHES, CATEGORIES, SEASON_IDS } from '../config.js';
 import { barChart, destroyChart, palette } from '../lib/charts.js';
 import { catClass, debounce, fmt, html, raw } from '../lib/dom.js';
 import { logoHtml } from '../lib/logos.js';
-import { bandIndex, bandTotals, checkCompany, describeEligibility, isConversion, peers, unifyBranch } from '../lib/eligibility.js';
+import { bandIndex, bandTotals, checkCompany, conversionOffers, describeEligibility, isConversion, peers, unifyBranch } from '../lib/eligibility.js';
 
 const STORE = 'eligibility';
 const LIMIT = 12;
@@ -127,16 +127,15 @@ export function renderEligibility(root, m, ctx) {
     // Keep the URL shareable without re-rendering (that would steal focus from the input).
     history.replaceState(null, '', ctx.hrefFor(m.season.id, 'eligibility', null, query));
   };
-  // State follows every keystroke; the results catch up after a pause, and only
-  // if this render is still on the page.
+  // State and URL follow every keystroke; the results catch up after a pause,
+  // and only if this render is still on the page.
   const later = debounce(() => {
-    if (!results.isConnected) return;
-    sync();
-    paint();
+    if (results.isConnected) paint();
   }, 250);
 
   input.addEventListener('input', () => {
     state.cgpa = input.value.trim();
+    sync();
     later();
   });
   select.addEventListener('change', () => {
@@ -256,7 +255,7 @@ function renderResults(root, m, ctx, { cgpa, branch }) {
     <div class="toolbar elig-toolbar">
       <div class="chips" role="group" aria-label="Profile">
         ${['all', ...CATEGORIES].map(
-          (k) => html`<button class="chip" type="button" data-cat="${k}" aria-pressed="${state.cat === k}">${k !== 'all' ? html`<i class="key ${catClass(k)}"></i>` : ''}${k === 'all' ? 'All profiles' : k}</button>`,
+          (k) => html`<button class="chip" type="button" data-cat="${k}" aria-pressed="${String(state.cat === k)}">${k !== 'all' ? html`<i class="key ${catClass(k)}"></i>` : ''}${k === 'all' ? 'All profiles' : k}</button>`,
         )}
       </div>
     </div>
@@ -381,7 +380,7 @@ function groupTable(key, title, rows, opts) {
   const shown = open ? sorted : sorted.slice(0, LIMIT);
   const more =
     sorted.length > LIMIT
-      ? html`<button class="btn btn-sm elig-expand" type="button" data-expand="${key}" aria-expanded="${open}">${open ? 'Show fewer' : `Show all ${sorted.length}`}</button>`
+      ? html`<button class="btn btn-sm elig-expand" type="button" data-expand="${key}" aria-expanded="${String(open)}">${open ? 'Show fewer' : `Show all ${sorted.length}`}</button>`
       : '';
   const body = sorted.length
     ? html`<div class="table-wrap">
@@ -400,7 +399,7 @@ function groupTable(key, title, rows, opts) {
     : html`<div class="panel empty">${key === 'out' ? 'Nothing out of reach.' : 'No companies here.'}</div>`;
   const head = html`<span class="elig-group-title"><span class="elig-dot is-${key}" aria-hidden="true"></span>${title}</span> <span class="elig-count">${fmt.int(rows.length)}</span>`;
   if (key === 'out') {
-    return html`<details class="elig-group is-${key}"><summary><h3 class="elig-group-head">${head}</h3><span class="muted elig-group-sub">${GROUP_NOTES[key]}</span></summary>${body}</details>`;
+    return html`<details class="elig-group is-${key}"><summary><h3 class="elig-group-head">${head}</h3><span class="muted elig-group-sub">${GROUP_NOTES[key]}</span><span class="elig-toggle" aria-hidden="true"></span></summary>${body}</details>`;
   }
   return html`<section class="elig-group is-${key}"><h3>${head}<span class="muted elig-group-sub">${GROUP_NOTES[key]}</span></h3>${body}</section>`;
 }
@@ -408,18 +407,19 @@ function groupTable(key, title, rows, opts) {
 function companyRow(r, { m, ctx, branch, cgpa, band, prev }) {
   const c = r.company;
   const b = unifyBranch(branch);
-  // Selections through campus drives (not intern conversions).
-  const campus = (o) => o.offer !== 'PPO' && unifyBranch(o.branch) === b;
-  const mine = c.offers.filter(campus);
+  // Selections through campus drives (not conversions or off-campus routes).
+  const isConv = conversionOffers(c);
+  const mine = c.offers.filter((o) => !isConv(o) && unifyBranch(o.branch) === b);
   const cgpas = mine.map((o) => o.cgpa).filter((x) => x !== null);
   const lowest = cgpas.length ? Math.min(...cgpas) : null;
   const inBand = (g) => g !== null && (band.min === null || g >= band.min - 1e-9) && (band.max === null || g < band.max - 1e-9);
   const near = band ? mine.filter((o) => inBand(o.cgpa)).length : 0;
   const prevC = prev?.companyByKey.get(c.key);
-  const prevFrom = prevC ? prevC.offers.filter(campus).length : 0;
+  const prevConv = prevC ? conversionOffers(prevC) : null;
+  const prevFrom = prevC ? prevC.offers.filter((o) => !prevConv(o) && unifyBranch(o.branch) === b).length : 0;
   const drives = r.roles.filter((x) => !isConversion(x));
   const roleNames = drives.length ? [...new Set(drives.map((x) => x.role).filter(Boolean))] : c.roleNames;
-  const roles = roleNames.slice(0, 2).join(' · ') + (roleNames.length > 2 ? ` +${roleNames.length - 2}` : '');
+  const roles = roleNames.join(' · ');
 
   let cutCell;
   if (r.status === 'below') cutCell = html`<b class="elig-short">${fmt.n2(r.cutoff)}</b><span class="sub">${fmt.n2(r.cutoff - cgpa)} short</span>`;
@@ -432,7 +432,10 @@ function companyRow(r, { m, ctx, branch, cgpa, band, prev }) {
   let hint = '';
   if (prev && r.prevSays && (r.prevListing || r.branchSource !== 'selected')) {
     const prevCode = Object.keys(prev.season.branchStrength || {}).find((k) => unifyBranch(k) === b) || branch;
-    hint = html`<span class="sub">${prev.season.id}: ${r.prevListing || `${prevCode} students selected`}${r.prevSays === 'no' ? ` (not ${prevCode})` : ''}</span>`;
+    let text = r.prevListing || `${prevCode} students selected`;
+    if (r.prevSays === 'no') text += ` (not ${prevCode})`;
+    else if (r.prevListing && !r.prevListedYes) text += `; ${prevCode} students selected`;
+    hint = html`<span class="sub">${prev.season.id}: ${text}</span>`;
   }
   let branchCell;
   if (r.status === 'branch') {

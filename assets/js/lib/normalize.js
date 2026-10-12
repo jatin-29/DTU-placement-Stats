@@ -214,9 +214,9 @@ export function archiveCompanyRows(rows = []) {
       companyKey: companyKey(r.company),
       role: text(r.role),
       offer: normOffer(r.offer),
-      cgpa: num(r.cgpa) || null,
+      cgpa: num(r.cgpa),
       // Cut-offs that differ by branch, e.g. { EC: 8 } on a 7.0 drive.
-      cgpaByBranch: r.cgpaByBranch || null,
+      cgpaByBranch: r.cgpaByBranch ? Object.fromEntries(Object.entries(r.cgpaByBranch).map(([k, v]) => [k.toUpperCase(), num(v)])) : null,
       count: null,
       ctc: parseCtc(r.ctc),
       base: num(r.base),

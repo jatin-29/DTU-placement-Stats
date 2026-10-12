@@ -39,6 +39,14 @@ test('eligibility notes', () => {
   assert.equal(describeEligibility(parseEligibility('', 'Graduate Engineering Trainee - ME, CH')), 'ME, CH');
   assert.equal(describeEligibility(parseEligibility('', 'GET (Electronics / Mechanical / IT)')), 'IT, EC, ME');
   assert.equal(describeEligibility(parseEligibility('', 'Analyst - IT')), 'Not listed');
+  assert.equal(describeEligibility(parseEligibility('', 'Field Application Engineer (Core - ECE)')), 'EC');
+  assert.equal(describeEligibility(parseEligibility('', 'Core - Mechanical & Related, Electrical & Related, Biotech')), 'EE, ME, BT');
+  assert.equal(says('Noida, ECE, EE'), 'EC, EE');
+  assert.equal(says('Gurugram, COE, IT, SE, MCE'), 'CO, IT, SE, MC');
+  assert.equal(says('Bengaluru, Software'), 'Not listed');
+  assert.equal(says('Bangalore, Civil'), 'Not listed');
+  assert.equal(says('Location: Noida, MTech (CSE, SWE)'), 'Not listed');
+  assert.equal(says('Eligible: BTech (CSE, IT), MTech + MBA'), 'CO, IT');
 
   assert.deepEqual(eligibilityNotes('Placed Students aren\'t eligible. Eligible: BTech (ECE, EE)'), ['Unplaced only']);
   assert.deepEqual(eligibilityNotes('Strictly for PwDs only. Non-blocking opportunity'), ['PwD only']);
@@ -52,6 +60,7 @@ test('eligibility notes', () => {
   assert.deepEqual(eligibilityNotes('Class 10 - 70%, Class 12 - 70%.'), ['Other criteria']);
   assert.deepEqual(eligibilityNotes('10th: 75, 12th: 75'), ['Other criteria']);
   assert.deepEqual(eligibilityNotes('10% variable pay'), []);
+  assert.deepEqual(eligibilityNotes('Variable: 10% - 15% of CTC'), []);
 });
 
 test('every listed eligibility note uses known words', async () => {
@@ -129,7 +138,15 @@ test('company checks', async () => {
   assert.equal(status({ ...open, roles: [{ ...open.roles[0], comments: 'Hackathon Convert' }] }, 8, 'CS'), 'conversion');
   assert.equal(status({ ...open, roles: [{ ...open.roles[0], comments: 'via flipkart grid' }] }, 8, 'CS'), 'conversion');
   assert.equal(status({ key: 'y', roles: [], offers: [offer('CO', 8, { offer: 'PPO' })] }, 8, 'CS'), 'conversion');
-  assert.equal(status({ key: 'y', roles: [], offers: [offer('CO', 8)] }, 8, 'CS'), 'likely');
+  assert.equal(status({ key: 'y', roles: [], offers: [offer('CO', 8)] }, 8, 'CS'), 'eligible');
+  assert.equal(status({ key: 'y', roles: [], offers: [offer('CO', 8.5)] }, 8, 'CS'), 'likely');
+  // Offers for a role filled only off campus are not evidence.
+  const grid = { key: 'f', roles: [{ ...open.roles[0], role: 'AI Engineer', comments: 'via flipkart grid' }, { ...open.roles[0], role: 'Assistant Manager', cgpa: 7 }], offers: [offer('ME', 7.5, { role: 'AI Engineer' })] };
+  assert.equal(status(grid, 7.6, 'ME'), 'likely');
+  assert.equal(status({ ...open, roles: [{ ...open.roles[0], comments: 'Non Blocking, HACKWITHINFY SELECTIONS' }] }, 8, 'CS'), 'conversion');
+  // Listed exclusion with a selection from the branch: below every cut-off stays below.
+  assert.equal(status({ ...listed, offers: [offer('ME', 8)] }, 7, 'ME'), 'below');
+  assert.equal(checkCompany({ ...listed, offers: [offer('ME', 8)] }, { cgpa: 9, branch: 'ME' }).cutoff, null);
   assert.equal(status({ key: 'y', roles: [], offers: [offer('ME', 8)] }, 8, 'CS'), 'unlisted');
 
   // Real data: every company lands in exactly one bucket, and a 10.0 CS student
@@ -142,4 +159,34 @@ test('company checks', async () => {
   const shaw = prev.companies.find((c) => c.name === 'De Shaw');
   assert.equal(checkCompany(shaw, { cgpa: 7.5, branch: 'EC' }).status, 'below');
   assert.equal(checkCompany(shaw, { cgpa: 7.5, branch: 'CO' }).status, 'eligible');
+});
+
+test('published CGPA counts cannot be subtracted down to a small group', async () => {
+  const d = await json('data/2026.json');
+  // Every span between the batch-wide band edges, worked out as an outsider could:
+  // batch count minus each published branch band lying wholly inside the span.
+  const cuts = [...new Set(d.cgpaBands.flatMap((b) => [b.min, b.max]).filter((x) => x !== null))].sort((a, b) => a - b);
+  const points = [-Infinity, ...cuts, Infinity];
+  const lo = (x) => (x === null ? -Infinity : x);
+  const hi = (x) => (x === null ? Infinity : x);
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const [a, b] = [points[i], points[j]];
+      if (a === -Infinity && b === Infinity) continue;
+      const batch = d.cgpaBands.filter((x) => lo(x.min) >= a && hi(x.max) <= b).reduce((s, x) => s + x.total, 0);
+      const known = Object.values(d.branchCgpa)
+        .flat()
+        .filter((x) => lo(x.min) >= a && hi(x.max) <= b)
+        .reduce((s, x) => s + x.total, 0);
+      const rest = batch - known;
+      assert.ok(rest === 0 || rest >= 5, `CGPA ${a}–${b}: ${rest} students left after subtraction`);
+    }
+  }
+});
+
+test('archived postings keep a zero cut-off as "none"', async () => {
+  const { archiveCompanyRows } = await import('../assets/js/lib/normalize.js');
+  const [row] = archiveCompanyRows([{ company: 'Acme', role: 'SDE', offer: 'FTE', cgpa: 0, comments: 'Eligible: B.Tech (All)', cgpaByBranch: { ec: '8' } }]);
+  assert.equal(row.cgpa, 0);
+  assert.deepEqual(row.cgpaByBranch, { EC: 8 });
 });

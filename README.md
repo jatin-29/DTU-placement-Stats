@@ -20,10 +20,9 @@ the complete **2026 archive** (batch 2K22).
 - **Students**: a searchable, sortable table of every offer. It filters by branch, profile,
   company, offer type and CGPA range, and exports to CSV.
 - **Eligibility** ("Where could I get in?"): enter a CGPA and branch to see which companies
-  were open to you (CGPA cut-off met, branch listed or someone from it selected), which
-  probably were (branches not listed), and which were out of reach and why. It also shows how
-  students from your branch in your half-point CGPA band did: their placement rate in 2026 and
-  where they got offers.
+  were open to you (cut-off met and branch confirmed), which probably were (branches or cut-off
+  not on record), and which were out of reach and why. It also shows how students from your
+  branch with a similar CGPA did: their placement rate in 2026 and where they got offers.
 - **2026 vs 2027**: the two seasons side by side, by branch, profile mix and recruiter.
 
 ## How the live updates work
@@ -84,12 +83,17 @@ in `assets/vendor`.
   the same programme.
 - In 2026, offers to M.Tech, MBA and other-batch students are grouped as `MISC`. They count
   in offers but not in B.Tech placement rates.
-- Eligibility reads the branches from each posting's "Eligible: ..." note
-  (`assets/js/lib/eligibility.js`). Where a drive lists none, a selection from your branch or
-  last season's list for the same company fills the gap. Pre-placement offers to returning
-  interns are not counted as drives. The "students like you" rates use per-branch counts of
-  the 2K22 batch in each half-point CGPA band (`branchCgpa` in `data/2026.json`); like the other
-  batch figures, only counts are published, never an individual's CGPA.
+- Eligibility (`assets/js/lib/eligibility.js`) reads the branches from each posting's
+  "Eligible: ..." note, or from a bare list of branch codes in the note or the role name.
+  A branch counts as open when it is listed or someone from it was selected; a cut-off that
+  is not on record counts as met when someone was selected at or below your CGPA. Last
+  season's list for the same company is shown as a hint only. Intern conversions (PPO) and
+  off-campus routes ("via ...", "Hackathon/Intern convert", HackWithInfy) are not drives, and
+  their offers are not used as evidence.
+- The "students like you" rates use per-branch counts of the 2K22 batch by CGPA band
+  (`branchCgpa` in `data/2026.json`). Bands are half a point wide, merged so that each holds
+  at least 5 students and so that no subtraction against the batch-wide bands can single out
+  fewer than 5 (the tests check this). Only counts are published, never an individual's CGPA.
 - The 2026 archive corrects the sheet where the workbook itself shows it is wrong
   (`scripts/build_2026.py` lists every correction):
   - 13 wrong or missing roll numbers (11 pulled another student's CGPA)

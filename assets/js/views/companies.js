@@ -76,7 +76,7 @@ export function renderCompanies(root, m, ctx) {
       <div class="grow"><input class="input input-search" type="search" placeholder="Search company or role…" aria-label="Search companies" value="${state.q}" data-f="q"></div>
       <div class="chips" role="group" aria-label="Profile">
         ${['all', ...CATEGORIES].map(
-          (k) => html`<button class="chip" type="button" data-cat="${k}" aria-pressed="${state.cat === k}">${k !== 'all' ? html`<i class="key ${catClass(k)}"></i>` : ''}${k === 'all' ? 'All' : k}</button>`,
+          (k) => html`<button class="chip" type="button" data-cat="${k}" aria-pressed="${String(state.cat === k)}">${k !== 'all' ? html`<i class="key ${catClass(k)}"></i>` : ''}${k === 'all' ? 'All' : k}</button>`,
         )}
       </div>
       ${m.season.live
