@@ -372,8 +372,9 @@ export function installLogoFallbacks(root = document) {
     (e) => {
       const img = e.target;
       if (!(img instanceof HTMLImageElement) || !img.closest('.logo')) return;
-      // Favicon services sometimes answer with a 16px placeholder; treat tiny images as missing.
-      if (img.naturalWidth && img.naturalWidth < 24) img.dispatchEvent(new Event('error'));
+      // Favicon services sometimes answer with a 16px placeholder; treat tiny images as
+      // missing (SVGs scale, whatever size they declare).
+      if (img.naturalWidth && img.naturalWidth < 24 && !/\.svg(\?|$)/i.test(img.currentSrc)) img.dispatchEvent(new Event('error'));
       else img.closest('.logo').classList.add('is-loaded');
     },
     true,

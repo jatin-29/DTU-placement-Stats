@@ -29,7 +29,7 @@ const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const DAY = 86400000;
 const MIN_SIZE = 32;
 // Bump when the sources change, so earlier misses are retried straight away.
-const SOURCES_VERSION = 2;
+const SOURCES_VERSION = 3;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 // ---------- which domains ----------
@@ -157,6 +157,9 @@ const SOURCES = [
   (d) => siteIcons(d),
   (d) => tryFetch(`https://icons.duckduckgo.com/ip3/${d}.ico`),
   (d) => tryFetch(`https://icon.horse/icon/${d}`),
+  // Aggregators; both answer 404 (not a placeholder) when they have nothing.
+  (d) => tryFetch(`https://unavatar.io/${d}?fallback=false`),
+  (d) => tryFetch(`https://logo.clearbit.com/${d}?size=128`),
   (d) => tryFetch(`https://${d}/apple-touch-icon.png`),
   (d) => tryFetch(`https://www.${d}/apple-touch-icon.png`),
 ];
