@@ -29,7 +29,7 @@ const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const DAY = 86400000;
 const MIN_SIZE = 32;
 // Bump when the sources change, so earlier misses are retried straight away.
-const SOURCES_VERSION = 4;
+const SOURCES_VERSION = 5;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 // ---------- which domains ----------
@@ -75,9 +75,10 @@ function imageSize(buf) {
       i += 2 + buf.readUInt16BE(i + 2);
     }
   }
-  // SVG scales to any size.
-  const head = buf.subarray(0, 512).toString('utf8').trimStart();
-  if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg[\s>]/i.test(head)) return { ext: 'svg', size: 512 };
+  // SVG scales to any size. (Files often open with an XML declaration, comments
+  // and a DOCTYPE before the <svg> element.)
+  const head = buf.subarray(0, 8192).toString('utf8').trimStart();
+  if (head.startsWith('<') && /<svg[\s>]/i.test(head)) return { ext: 'svg', size: 512 };
   return null;
 }
 
@@ -85,7 +86,7 @@ async function get(url, ms = 15000, ua = UA) {
   return fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': ua, accept: '*/*' } });
 }
 
-async function tryFetch(url, ua) {
+async function tryFetch(url, ua, minSize = MIN_SIZE) {
   try {
     const res = await get(url, 15000, ua);
     const type = res.headers.get('content-type') || '';
@@ -93,7 +94,7 @@ async function tryFetch(url, ua) {
     const buf = Buffer.from(await res.arrayBuffer());
     const info = imageSize(buf);
     if (info?.ext === 'svg' && !/svg/.test(type)) return null;
-    return info && info.size >= MIN_SIZE ? { buf, ...info } : null;
+    return info && info.size >= minSize ? { buf, ...info } : null;
   } catch {
     return null;
   }
@@ -210,7 +211,12 @@ async function fetchLogo(domain) {
     const hit = await src(domain);
     if (hit) return hit;
   }
-  return null;
+  // Last resort: a small favicon (16-31px). The page draws these smaller so they
+  // stay sharp; still better than initials.
+  return (
+    (await tryFetch(`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=64`, undefined, 16)) ||
+    (await tryFetch(`https://icons.duckduckgo.com/ip3/${domain}.ico`, undefined, 16))
+  );
 }
 
 // ---------- main ----------

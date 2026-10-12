@@ -1259,6 +1259,11 @@ td a:not(.company-link) {
   opacity: 0;
   transition: opacity 0.2s;
 }
+.logo.is-lowres img {
+  inset: 25%;
+  width: 50%;
+  height: 50%;
+}
 .logo.is-loaded img {
   opacity: 1;
 }

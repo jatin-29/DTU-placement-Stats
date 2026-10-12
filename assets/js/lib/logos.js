@@ -497,10 +497,18 @@ export function installLogoFallbacks(root = document) {
     (e) => {
       const img = e.target;
       if (!(img instanceof HTMLImageElement) || !img.closest('.logo')) return;
-      // Favicon services sometimes answer with a 16px placeholder; treat tiny images as
-      // missing (SVGs scale, whatever size they declare).
-      if (img.naturalWidth && img.naturalWidth < 24 && !/\.svg(\?|$)/i.test(img.currentSrc)) img.dispatchEvent(new Event('error'));
-      else img.closest('.logo').classList.add('is-loaded');
+      const svg = /\.svg(\?|$)/i.test(img.currentSrc);
+      const bundled = img.currentSrc.includes('/assets/logos/');
+      // Favicon services sometimes answer with a 16px placeholder; treat tiny images from
+      // them as missing (bundled logos were checked at build time; SVGs scale).
+      if (!bundled && !svg && img.naturalWidth && img.naturalWidth < 24) {
+        img.dispatchEvent(new Event('error'));
+        return;
+      }
+      const logo = img.closest('.logo');
+      logo.classList.add('is-loaded');
+      // A small bitmap is drawn smaller so it stays sharp.
+      if (!svg && img.naturalWidth && img.naturalWidth < 32) logo.classList.add('is-lowres');
     },
     true,
   );
