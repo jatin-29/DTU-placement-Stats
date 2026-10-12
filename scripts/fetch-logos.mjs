@@ -28,6 +28,9 @@ if (!siteDir) {
 const root = (p) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const DAY = 86400000;
 const MIN_SIZE = 32;
+// Bump when the sources change, so earlier misses are retried straight away.
+const SOURCES_VERSION = 2;
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 // ---------- which domains ----------
 
@@ -72,31 +75,95 @@ function imageSize(buf) {
       i += 2 + buf.readUInt16BE(i + 2);
     }
   }
+  // SVG scales to any size.
+  const head = buf.subarray(0, 512).toString('utf8').trimStart();
+  if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg[\s>]/i.test(head)) return { ext: 'svg', size: 512 };
   return null;
+}
+
+async function get(url, ms = 15000) {
+  return fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': UA, accept: '*/*' } });
 }
 
 async function tryFetch(url) {
   try {
-    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(15000), headers: { 'user-agent': 'Mozilla/5.0 (logo bundler)' } });
-    if (!res.ok || !/^image\//.test(res.headers.get('content-type') || 'image/')) return null;
+    const res = await get(url);
+    const type = res.headers.get('content-type') || '';
+    if (!res.ok || (type && !/^image\/|octet-stream/.test(type))) return null;
     const buf = Buffer.from(await res.arrayBuffer());
     const info = imageSize(buf);
+    if (info?.ext === 'svg' && !/svg/.test(type)) return null;
     return info && info.size >= MIN_SIZE ? { buf, ...info } : null;
   } catch {
     return null;
   }
 }
 
+// Icons a site declares itself: <link rel="apple-touch-icon" / "icon"> and the
+// web-app manifest's icons, largest first.
+async function siteIcons(domain) {
+  for (const origin of [`https://${domain}/`, `https://www.${domain}/`]) {
+    let html;
+    let base;
+    try {
+      const res = await get(origin, 12000);
+      if (!res.ok || !/html/.test(res.headers.get('content-type') || '')) continue;
+      base = res.url || origin;
+      html = (await res.text()).slice(0, 600000);
+    } catch {
+      continue;
+    }
+    const found = [];
+    const attr = (tag, name) => (tag.match(new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i')) || []).slice(2).find((x) => x !== undefined) || '';
+    let manifest = '';
+    for (const tag of html.match(/<link\b[^>]*>/gi) || []) {
+      const rel = attr(tag, 'rel').toLowerCase();
+      const href = attr(tag, 'href');
+      if (!href) continue;
+      if (rel.includes('manifest')) manifest = href;
+      if (!/(^|\s)(apple-touch-icon(-precomposed)?|icon)(\s|$)/.test(rel) || rel.includes('mask-icon')) continue;
+      const sizes = attr(tag, 'sizes');
+      const declared = /svg/i.test(attr(tag, 'type')) || /\.svg(\?|$)/i.test(href) ? 512 : Math.max(0, ...(sizes.match(/\d+/g) || []).map(Number));
+      found.push({ href, size: declared || (rel.includes('apple') ? 180 : 16) });
+    }
+    if (manifest) {
+      try {
+        const murl = new URL(manifest, base).href;
+        const m = await (await get(murl, 10000)).json();
+        for (const icon of m.icons || []) {
+          if (icon.src) found.push({ href: new URL(icon.src, murl).href, size: Math.max(0, ...(String(icon.sizes || '').match(/\d+/g) || []).map(Number)) || 192 });
+        }
+      } catch {
+        /* no usable manifest */
+      }
+    }
+    found.sort((a, b) => b.size - a.size);
+    for (const { href } of found) {
+      let url;
+      try {
+        url = new URL(href, base).href;
+      } catch {
+        continue;
+      }
+      const hit = await tryFetch(url);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
 const SOURCES = [
-  (d) => `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`,
-  (d) => `https://icons.duckduckgo.com/ip3/${d}.ico`,
-  (d) => `https://${d}/apple-touch-icon.png`,
-  (d) => `https://www.${d}/apple-touch-icon.png`,
+  (d) => tryFetch(`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`),
+  (d) => siteIcons(d),
+  (d) => tryFetch(`https://icons.duckduckgo.com/ip3/${d}.ico`),
+  (d) => tryFetch(`https://icon.horse/icon/${d}`),
+  (d) => tryFetch(`https://${d}/apple-touch-icon.png`),
+  (d) => tryFetch(`https://www.${d}/apple-touch-icon.png`),
 ];
 
 async function fetchLogo(domain) {
   for (const src of SOURCES) {
-    const hit = await tryFetch(src(domain));
+    const hit = await src(domain);
     if (hit) return hit;
   }
   return null;
@@ -120,6 +187,7 @@ const now = Date.now();
 const todo = [...domains].filter((d) => {
   const e = index[d];
   if (!e) return true;
+  if (!e.file && e.v !== SOURCES_VERSION) return true;
   return now - e.at > (e.file ? 30 : 2) * DAY;
 });
 console.log(`${domains.size} domains; ${todo.length} to fetch, ${domains.size - todo.length} from cache`);
@@ -134,7 +202,7 @@ async function worker() {
       await writeFile(join(cacheDir, file), hit.buf);
       index[d] = { file, size: hit.size, at: now };
     } else {
-      index[d] = { file: null, at: now };
+      index[d] = { file: null, at: now, v: SOURCES_VERSION };
     }
   }
 }
