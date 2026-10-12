@@ -3,3 +3,4 @@ _site/
 *.xlsx
 .DS_Store
 __pycache__/
+.logo-cache/

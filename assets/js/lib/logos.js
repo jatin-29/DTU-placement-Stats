@@ -1,7 +1,9 @@
-// Company logos. Each company name is mapped to its website domain and the
-// logo is fetched from a favicon/logo service by domain. Names without a known
-// domain get a coloured monogram. To add a logo: add "Company name": "domain"
-// below, or add a "Website" column to the Companies tab of the sheet.
+// Company logos. Each company name is mapped to its website domain. At deploy
+// time scripts/fetch-logos.mjs downloads each domain's icon into the site
+// (listed in data/logos.json); a domain missing there falls back to favicon
+// services. Names without a known domain get a coloured monogram. To add a
+// logo: add "Company name": "domain" below, or add a "Website" column to the
+// Companies tab of the sheet.
 
 import { CONFIG } from '../config.js';
 import { companyKey } from './normalize.js';
@@ -286,6 +288,23 @@ const KNOWN = {
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
 
+export function knownDomains() {
+  return [...new Set(Object.values(KNOWN))];
+}
+
+// Logos bundled with the site: { domain: path }. Loaded once; a slow or missing
+// file just means the favicon services are used instead.
+let bundled = {};
+export function loadLogoManifest(timeoutMs = 2500) {
+  const load = fetch('data/logos.json', { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((m) => {
+      if (m && typeof m === 'object') bundled = m;
+    })
+    .catch(() => {});
+  return Promise.race([load, new Promise((resolve) => setTimeout(resolve, timeoutMs))]);
+}
+
 export function domainFor(company) {
   if (company.domain) return company.domain;
   return DOMAINS.get(company.key) || DOMAINS.get(companyKey(company.name.replace(/\(.*?\)/g, ''))) || '';
@@ -294,6 +313,7 @@ export function domainFor(company) {
 export function logoSources(company) {
   const domain = domainFor(company);
   if (!domain) return [];
+  if (bundled[domain]) return [bundled[domain]];
   const list = [];
   if (CONFIG.logoDevToken) {
     list.push(`https://img.logo.dev/${domain}?token=${CONFIG.logoDevToken}&size=128&format=png`);

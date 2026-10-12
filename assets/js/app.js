@@ -4,7 +4,7 @@ import { CONFIG, SEASON_IDS } from './config.js';
 import { loadArchive, loadLive, loadSnapshot } from './lib/data.js';
 import { destroyCharts } from './lib/charts.js';
 import { ICONS, escapeHtml, html, timeAgo } from './lib/dom.js';
-import { installLogoFallbacks } from './lib/logos.js';
+import { installLogoFallbacks, loadLogoManifest } from './lib/logos.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderCompanies } from './views/companies.js';
 import { renderBranches } from './views/branches.js';
@@ -114,10 +114,16 @@ async function refreshLive(id, { manual = false } = {}) {
   }
 }
 
+// Bundled logos load alongside the data; the first paint waits for them (briefly)
+// so logos don't swap source after the page appears.
+const logosReady = loadLogoManifest();
+
 function setModel(id, m) {
   models[id] = m;
-  // Eligibility also reads the previous season (last season's results and branch lists).
-  if (route.season === id || route.view === 'compare' || route.view === 'eligibility') rerender({ keepScroll: true });
+  logosReady.then(() => {
+    // Eligibility also reads the previous season (last season's results and branch lists).
+    if (models[id] === m && (route.season === id || route.view === 'compare' || route.view === 'eligibility')) rerender({ keepScroll: true });
+  });
 }
 
 // ---------- rendering ----------
