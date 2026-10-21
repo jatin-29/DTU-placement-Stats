@@ -10,7 +10,6 @@ import { renderCompanies } from './views/companies.js';
 import { renderBranches } from './views/branches.js';
 import { renderStudents } from './views/students.js';
 import { renderCompare } from './views/compare.js';
-import { renderEligibility } from './views/eligibility.js';
 import { closeCompany, openCompany } from './views/company-dialog.js';
 
 const VIEWS = {
@@ -18,7 +17,6 @@ const VIEWS = {
   companies: { label: 'Companies', render: renderCompanies },
   branches: { label: 'Branches', render: renderBranches },
   students: { label: 'Students', render: renderStudents },
-  eligibility: { label: 'Eligibility', render: renderEligibility },
   compare: { label: '2026 vs 2027', render: renderCompare },
 };
 
@@ -121,8 +119,7 @@ const logosReady = loadLogoManifest();
 function setModel(id, m) {
   models[id] = m;
   logosReady.then(() => {
-    // Eligibility also reads the previous season (last season's results and branch lists).
-    if (models[id] === m && (route.season === id || route.view === 'compare' || route.view === 'eligibility')) rerender({ keepScroll: true });
+    if (models[id] === m && (route.season === id || route.view === 'compare')) rerender({ keepScroll: true });
   });
 }
 
@@ -212,10 +209,6 @@ function rerender({ keepScroll = false } = {}) {
     view.render(main, ctx);
   } else {
     ensureSeason(route.season);
-    if (route.view === 'eligibility') {
-      const prevId = SEASON_IDS[SEASON_IDS.indexOf(route.season) + 1];
-      if (prevId) ensureSeason(prevId);
-    }
     const m = models[route.season];
     const head = `<div class="statusbar" data-season="${route.season}">${statusHtml(route.season)}</div>`;
     if (!m) {

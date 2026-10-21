@@ -19,10 +19,6 @@ the complete **2026 archive** (batch 2K22).
   recruiters for each branch.
 - **Students**: a searchable, sortable table of every offer. It filters by branch, profile,
   company, offer type and CGPA range, and exports to CSV.
-- **Eligibility** ("Where could I get in?"): enter a CGPA and branch to see which companies
-  were open to you (cut-off met and branch confirmed), which probably were (branches or cut-off
-  not on record), and which were out of reach and why. It also shows how students from your
-  branch with a similar CGPA did: their placement rate in 2026 and where they got offers.
 - **2026 vs 2027**: the two seasons side by side, by branch and profile mix, then company by company: every recruiter that came in 2026 and is back in 2027, with offers, highest and average CTC, stipend and CGPA cut-off for each year, the change, and the roles and branches behind them. Companies that are new this year, or not back yet, have their own tabs. Names are matched across years even when they changed (legal suffixes, brackets, renames such as Zomato → Eternal); the hand-checked renames live in `assets/js/lib/match.js`.
 
 ## How the live updates work
@@ -83,13 +79,6 @@ in `assets/vendor`.
   the same programme.
 - In 2026, offers to M.Tech, MBA and other-batch students are grouped as `MISC`. They count
   in offers but not in B.Tech placement rates.
-- Eligibility (`assets/js/lib/eligibility.js`) reads the branches from each posting's
-  "Eligible: ..." note, or from a bare list of branch codes in the note or the role name.
-  A branch counts as open when it is listed or someone from it was selected; a cut-off that
-  is not on record counts as met when someone was selected at or below your CGPA. Last
-  season's list for the same company is shown as a hint only. Intern conversions (PPO) and
-  off-campus routes ("via ...", "Hackathon/Intern convert", HackWithInfy) are not drives, and
-  their offers are not used as evidence.
 - The "students like you" rates use per-branch counts of the 2K22 batch by CGPA band
   (`branchCgpa` in `data/2026.json`). Bands are half a point wide, merged so that each holds
   at least 5 students and so that no subtraction against the batch-wide bands can single out
