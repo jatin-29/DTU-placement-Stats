@@ -291,7 +291,11 @@ function roleLines(companies, live) {
   const lines = [];
   for (const c of companies) {
     if (live && c.roles.length) {
-      for (const r of c.roles) lines.push({ role: r.role, offer: r.offer, ctc: r.ctc, stipend: r.stipend, cgpa: r.cgpa, count: r.count });
+      for (const r of c.roles) {
+        // Separate drives ("Myntra(JAN-JUNE)") keep their label.
+        const drive = r.drive && r.drive !== c.name && r.drive !== r.company ? r.drive : '';
+        lines.push({ role: r.role, drive, offer: r.offer, ctc: r.ctc, stipend: r.stipend, cgpa: r.cgpa, count: r.count });
+      }
       continue;
     }
     if (c.offers.length) {
@@ -329,7 +333,7 @@ function sideDetail(year, label, companies, s, ctx, live) {
           <thead><tr><th>Role</th><th>Offer</th><th class="r">CTC</th><th class="r">Stipend</th><th class="r">CGPA</th><th class="r">Selected</th></tr></thead>
           <tbody>${lines.map(
             (l) => html`<tr>
-              <td class="wrap-cell">${l.role || '—'}</td>
+              <td class="wrap-cell">${l.role || '—'}${l.drive ? html`<span class="sub">${l.drive}</span>` : ''}</td>
               <td>${l.offer || '—'}</td>
               <td class="r">${fmt.n2(l.ctc)}</td>
               <td class="r">${l.stipend !== null ? `${fmt.n1(l.stipend)}K` : '—'}</td>
