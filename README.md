@@ -23,7 +23,7 @@ the complete **2026 archive** (batch 2K22).
   were open to you (cut-off met and branch confirmed), which probably were (branches or cut-off
   not on record), and which were out of reach and why. It also shows how students from your
   branch with a similar CGPA did: their placement rate in 2026 and where they got offers.
-- **2026 vs 2027**: the two seasons side by side, by branch, profile mix and recruiter.
+- **2026 vs 2027**: the two seasons side by side, by branch and profile mix, then company by company: every recruiter that came in 2026 and is back in 2027, with offers, highest and average CTC, stipend and CGPA cut-off for each year, the change, and the roles and branches behind them. Companies that are new this year, or not back yet, have their own tabs. Names are matched across years even when they changed (legal suffixes, brackets, renames such as Zomato → Eternal); the hand-checked renames live in `assets/js/lib/match.js`.
 
 ## How the live updates work
 

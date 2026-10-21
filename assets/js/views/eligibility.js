@@ -6,6 +6,7 @@ import { barChart, destroyChart, palette } from '../lib/charts.js';
 import { catClass, debounce, fmt, html, raw } from '../lib/dom.js';
 import { logoHtml } from '../lib/logos.js';
 import { bandIndex, bandTotals, checkCompany, conversionOffers, describeEligibility, isConversion, peers, unifyBranch } from '../lib/eligibility.js';
+import { previousCompany } from '../lib/match.js';
 
 const STORE = 'eligibility';
 const LIMIT = 12;
@@ -186,7 +187,7 @@ function renderResults(root, m, ctx, { cgpa, branch }) {
   const would = live ? 'would clear' : 'would have cleared';
 
   // ----- companies -----
-  const check = (c, g) => checkCompany(c, { cgpa: g, branch }, prev?.companyByKey.get(c.key) || null);
+  const check = (c, g) => checkCompany(c, { cgpa: g, branch }, previousCompany(prev, c));
   const checks = m.companies.map((c) => check(c, cgpa));
   const groups = {
     eligible: checks.filter((r) => r.status === 'eligible'),
@@ -414,7 +415,7 @@ function companyRow(r, { m, ctx, branch, cgpa, band, prev }) {
   const lowest = cgpas.length ? Math.min(...cgpas) : null;
   const inBand = (g) => g !== null && (band.min === null || g >= band.min - 1e-9) && (band.max === null || g < band.max - 1e-9);
   const near = band ? mine.filter((o) => inBand(o.cgpa)).length : 0;
-  const prevC = prev?.companyByKey.get(c.key);
+  const prevC = previousCompany(prev, c);
   const prevConv = prevC ? conversionOffers(prevC) : null;
   const prevFrom = prevC ? prevC.offers.filter((o) => !prevConv(o) && unifyBranch(o.branch) === b).length : 0;
   const drives = r.roles.filter((x) => !isConversion(x));
