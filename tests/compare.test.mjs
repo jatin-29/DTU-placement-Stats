@@ -47,6 +47,10 @@ test('seasons join into employer groups', () => {
   assert.deepEqual(j.onlyBefore.map((g) => g.before[0].name), ['Gone Pvt Ltd']);
   assert.equal(previousCompany(before, now.companyByKey.get('icicibank')).name, 'ICICI Bank Ltd');
   assert.equal(previousCompany(null, now.companies[0]), null);
+
+  // An off-campus hire is not a campus visit.
+  const offCampus = model(false, [['Myntra (off-campus)', 1]]);
+  assert.equal(previousCompany(offCampus, model(true, [['Myntra', 3]]).companies[0]), null);
 });
 
 test('every company lands in exactly one group', async () => {
@@ -78,15 +82,21 @@ test('side numbers: offers, packages, cut-offs, status', () => {
   assert.equal(a.maxCtc, 30);
   assert.equal(a.ctcPosted, true);
   assert.equal(a.avgCtc, 22);
-  assert.equal(a.cutoff, 7);
+  // One role has no cut-off, so the lowest is none.
+  assert.equal(a.cutoff, 0);
 
   // Nothing out yet: ongoing, package from the posting.
   const b = sideStats([company([], [role({ ctc: 15, count: null })])], { live: true });
   assert.deepEqual([b.status, b.count, b.maxCtc, b.ctcPosted, b.cutoff], ['ongoing', 0, 15, true, null]);
 
   // Every role reported zero.
-  const c = sideStats([company([], [role({ ctc: 15, count: 0, cgpa: 0 })])], { live: true });
-  assert.deepEqual([c.status, c.cutoff], ['none', 0]);
+  // Every role reported zero: the posted package was offered to nobody.
+  const c = sideStats([company([], [role({ ctc: 15, stipend: 40, count: 0, cgpa: 0 })])], { live: true });
+  assert.deepEqual([c.status, c.cutoff, c.maxCtc, c.maxStipend], ['none', 0, null, null]);
+
+  // Archive offers noted without names still count.
+  const u = sideStats([company([], [role({ ctc: 9, comments: '2 offers reported without names' })])]);
+  assert.deepEqual([u.count, u.status, u.maxCtc], [2, 'hired', null]);
 
   // Archive: postings never count as pending; offered CTC wins.
   const d = sideStats([company([offer({ ctc: 12 })], [role({ ctc: 40, cgpa: 8 })])]);

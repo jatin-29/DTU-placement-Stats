@@ -177,8 +177,10 @@ function offerChange(r) {
   if (!r.now || !r.before || r.now.status === 'ongoing') return null;
   return r.now.count - r.before.count;
 }
+// Sort keys rank settled figures only: no partial counts, no postings.
+const settledOfferChange = (r) => (r.now?.partial ? null : offerChange(r));
 function ctcChange(r) {
-  if (r.now?.maxCtc == null || r.before?.maxCtc == null) return null;
+  if (r.now?.maxCtc == null || r.before?.maxCtc == null || r.now.ctcPosted || r.before.ctcPosted) return null;
   return r.now.maxCtc - r.before.maxCtc;
 }
 
@@ -195,9 +197,9 @@ function sorted(rows) {
   const by = {
     offers: (a, b) => total(b) - total(a),
     now: nullsLast((r) => (r.now ? r.now.count : null), 1),
-    rise: nullsLast(offerChange, 1),
-    drop: nullsLast(offerChange, -1),
-    ctc: nullsLast((r) => r.now?.maxCtc ?? null, 1),
+    rise: nullsLast(settledOfferChange, 1),
+    drop: nullsLast(settledOfferChange, -1),
+    ctc: nullsLast((r) => (r.now?.ctcPosted ? null : r.now?.maxCtc ?? null), 1),
     ctcRise: nullsLast(ctcChange, 1),
     ctcDrop: nullsLast(ctcChange, -1),
     name: () => 0,
@@ -243,8 +245,9 @@ function metric(label, was, is, { change = null, f = fmt.n2, tone = 1, note = ''
   </div>`;
 }
 
-const posted = (side) => (side.ctcPosted ? html`<sup class="yoy-posted" title="Posted package, not yet an offer">p</sup>` : '');
-const money = (side, key, f = fmt.n2) => (side[key] === null ? '—' : html`${f(side[key])}${key === 'maxCtc' ? posted(side) : ''}`);
+const POSTED_FLAG = { maxCtc: 'ctcPosted', maxStipend: 'stipendPosted' };
+const posted = (side, key) => (side[POSTED_FLAG[key]] ? html`<sup class="yoy-posted" title="Posted for a role whose results are still due">p</sup>` : '');
+const money = (side, key, f = fmt.n2) => (side[key] === null ? '—' : html`${f(side[key])}${posted(side, key)}`);
 const cutoffText = (v) => (v === null ? '—' : v === 0 ? 'None' : fmt.n1(v));
 
 function offersCell(r) {
@@ -268,16 +271,17 @@ function summaryRow(r) {
     <div class="yoy-co">
       ${raw(logoHtml(r.lead, 'sm'))}
       <div class="yoy-name">
-        <b>${r.name}</b>
+        <b title="${r.name}">${r.name}</b>
         <span class="sub">${cats.map((k) => html`<span class="yoy-cat"><i class="key ${catClass(k)}"></i>${k}</span>`)}${r.formerly ? html`<span>2026: ${r.formerly}</span>` : ''}</span>
       </div>
     </div>
     ${offersCell(r)}
-    ${metric('Highest CTC', was('maxCtc'), is('maxCtc'), { change: diff('maxCtc'), tone: both && (n.ctcPosted || b.ctcPosted) ? 0 : 1 })}
-    ${metric('Avg CTC', was('avgCtc'), is('avgCtc'), { change: diff('avgCtc') })}
-    ${metric('Stipend', was('maxStipend', fmt.n1), is('maxStipend', fmt.n1), { change: diff('maxStipend'), f: fmt.n1 })}
+    ${metric('Highest CTC (LPA)', was('maxCtc'), is('maxCtc'), { change: diff('maxCtc'), tone: both && (n.ctcPosted || b.ctcPosted) ? 0 : 1 })}
+    ${metric('Avg CTC (LPA)', was('avgCtc'), is('avgCtc'), { change: diff('avgCtc'), tone: both && n.partial ? 0 : 1 })}
+    ${metric('Stipend (K/mo)', was('maxStipend', fmt.n1), is('maxStipend', fmt.n1), { change: diff('maxStipend'), f: fmt.n1, tone: both && (n.stipendPosted || b.stipendPosted) ? 0 : 1 })}
     ${metric('CGPA cut-off', b ? cutoffText(b.cutoff) : null, n ? cutoffText(n.cutoff) : null, {
-      change: both && n.cutoff !== null && b.cutoff !== null ? n.cutoff - b.cutoff : null,
+      // "7 → None" is not a change of −7.
+      change: both && n.cutoff && b.cutoff ? n.cutoff - b.cutoff : null,
       f: fmt.n1,
       tone: 0,
     })}
@@ -310,9 +314,12 @@ function roleLines(companies, live) {
         groups.get(k).count++;
       }
       lines.push(...[...groups.values()].sort((a, b) => b.count - a.count));
+      // Other postings, whose selections (if any) were recorded under another role name.
+      const used = new Set(c.offers.map((o) => norm(o.role)));
+      for (const r of c.roles) if (!used.has(norm(r.role))) lines.push({ role: r.role, offer: r.offer, ctc: r.ctc, stipend: r.stipend, cgpa: r.cgpa, count: undefined });
       continue;
     }
-    for (const r of c.roles) lines.push({ role: r.role, offer: r.offer, ctc: r.ctc, stipend: r.stipend, cgpa: r.cgpa, count: 0 });
+    for (const r of c.roles) lines.push({ role: r.role, offer: r.offer, ctc: r.ctc, stipend: r.stipend, cgpa: r.cgpa, count: Number(/(\d+)\s+offers?\s+reported\s+without\s+names/i.exec(r.comments || '')?.[1] || 0) });
   }
   return lines;
 }
@@ -338,7 +345,7 @@ function sideDetail(year, label, companies, s, ctx, live) {
               <td class="r">${fmt.n2(l.ctc)}</td>
               <td class="r">${l.stipend !== null ? `${fmt.n1(l.stipend)}K` : '—'}</td>
               <td class="r">${l.cgpa === null ? '—' : l.cgpa === 0 ? 'None' : fmt.n1(l.cgpa)}</td>
-              <td class="r">${l.count === null ? html`<span class="muted">ongoing</span>` : fmt.int(l.count)}</td>
+              <td class="r">${l.count === null ? html`<span class="muted">ongoing</span>` : l.count === undefined ? '—' : fmt.int(l.count)}</td>
             </tr>`,
           )}</tbody>
         </table></div>`
@@ -378,7 +385,7 @@ function scoreboard(both, groups) {
   const sum = (list, side) => list.reduce((a, r) => a + r[side].count, 0);
   const cell = (big, label, sub) => html`<div class="yoy-score"><div class="v">${big}</div><div class="l">${label}</div>${sub ? html`<div class="s">${sub}</div>` : ''}</div>`;
   return html`<div class="panel yoy-scores">
-    ${cell(fmt.int(both.length), 'companies came back', `of ${fmt.int(groups.visitedBefore)} from 2026 · ${fmt.int(groups.newNow)} new this year`)}
+    ${cell(fmt.int(both.length), 'companies came back', `of the ${fmt.int(groups.visitedBefore)} that came in 2026, counting drives without offers · ${fmt.int(groups.newNow)} new this year`)}
     ${cell(html`${fmt.int(sum(out, 'now'))}<small> vs ${fmt.int(sum(out, 'before'))}</small>`, 'offers so far vs 2026', `from the ${fmt.int(out.length)} with 2027 results out`)}
     ${cell(html`${fmt.int(more)}<small> ▲</small> · ${fmt.int(fewer)}<small> ▼</small>`, 'hiring more · fewer', `${fmt.int(settled.length - more - fewer)} the same; ${fmt.int(both.length - settled.length)} still in progress`)}
     ${cell(html`${fmt.int(higher)}<small> ▲</small> · ${fmt.int(lower)}<small> ▼</small>`, 'paying more · less', `highest CTC offered; ${fmt.int(priced.length - higher - lower)} unchanged`)}
@@ -425,7 +432,7 @@ function renderCompanies(root, now, before, ctx) {
       <span>Company</span><span>Offers</span><span>Highest CTC <small>LPA</small></span><span>Avg CTC <small>LPA</small></span><span>Stipend <small>K/mo</small></span><span>CGPA cut-off</span><span></span>
     </div>
     <div class="yoy-list" data-list></div>
-    <p class="yoy-foot">Offers count every selection, including PPOs. Highest CTC is the best package actually offered; <sup class="yoy-posted">p</sup> marks the posted package of a role whose results are still due. CGPA cut-off is the lowest across a company's roles: “None” means no cut-off, “—” means it was not recorded. A company is matched across the two years even when its name changed, for example Zomato → Eternal or OYO → Prism (OYO).</p>
+    <p class="yoy-foot">Offers count every selection, including PPOs. Highest CTC and stipend are the best actually offered; <sup class="yoy-posted">p</sup> marks a higher figure posted for a role whose results are still due, and “—” means nobody has been offered one. CGPA cut-off is the lowest across a company's roles: “None” means no cut-off, “—” means it was not recorded. A company is matched across the two years even when its name changed, for example Zomato → Eternal or OYO → Prism (OYO).</p>
   `;
 
   const list = root.querySelector('[data-list]');
@@ -439,7 +446,6 @@ function renderCompanies(root, now, before, ctx) {
     for (const o of sortSel.options) o.hidden = o.disabled = off(o.value);
     sortSel.options[0].textContent = state.tab === 'both' ? SORTS.offers : 'Most offers';
     if (off(state.sort)) state.sort = 'offers';
-    if (state.tab === 'onlyBefore') state.status = 'all';
     statusSel.hidden = state.tab === 'onlyBefore';
     for (const sel of root.querySelectorAll('select[data-f]')) sel.value = state[sel.dataset.f];
 
@@ -468,6 +474,8 @@ function renderCompanies(root, now, before, ctx) {
   root.querySelector('[data-f="q"]').addEventListener(
     'input',
     debounce((e) => {
+      // A live refresh may have replaced the box while this was pending.
+      if (!e.target.isConnected) return;
       state.q = e.target.value.trim();
       paint();
     }, 120),

@@ -32,8 +32,9 @@ const SAME_EMPLOYER = [
   ['Everest', 'Everest Group'],
 ];
 
-// Names that collide but belong to different employers.
-const DIFFERENT_EMPLOYERS = [];
+// Names that collide but belong to different employers (or hires that were
+// not a campus visit).
+const DIFFERENT_EMPLOYERS = [['Myntra', 'Myntra (off-campus)']];
 
 const groupOf = new Map();
 for (const names of SAME_EMPLOYER) {
@@ -146,33 +147,32 @@ export function joinSeasons(now, before) {
 const maxOf = (arr) => (arr.length ? Math.max(...arr) : null);
 
 // What was actually offered, raised to the posted figure of a role whose
-// results are still due; failing both, the highest posting.
+// results are still due (`posted`). Postings nobody was selected from don't count.
 function highest(offers, roles, field, live) {
   const pick = (list) => maxOf(list.map((x) => x[field]).filter((x) => x !== null));
   let value = pick(offers);
   let posted = false;
   const pending = live ? pick(roles.filter((r) => r.count === null)) : null;
   if (pending !== null && (value === null || pending > value)) [value, posted] = [pending, true];
-  if (value === null) {
-    value = pick(roles);
-    posted = value !== null;
-  }
   return { value, posted };
 }
 
+// Archived postings note offers that were reported without student names.
+const UNNAMED = /(\d+)\s+offers?\s+reported\s+without\s+names/i;
+const unnamedOffers = (roles) => roles.reduce((a, r) => a + Number(UNNAMED.exec(r.comments || '')?.[1] || 0), 0);
+
 // One season's side of an employer group, summed over its companies.
-// Highest CTC and stipend follow highest(); `ctcPosted` marks a CTC that
-// came from a posting rather than an offer.
-// Cut-off: the lowest listed, 0 when a posting said none, null when unknown.
+// Highest CTC and stipend follow highest(); `ctcPosted` / `stipendPosted`
+// mark a figure that came from a posting rather than an offer.
+// Cut-off: the lowest listed (0 = a role with none), null when unknown.
 export function sideStats(companies, { live = false } = {}) {
   const offers = companies.flatMap((c) => c.offers);
   const roles = companies.flatMap((c) => c.roles);
-  const count = companies.reduce((a, c) => a + c.count, 0);
+  const count = companies.reduce((a, c) => a + c.count, 0) + (live ? 0 : unnamedOffers(roles));
   const offered = offers.map((o) => o.ctc).filter((x) => x !== null);
   const ctc = highest(offers, roles, 'ctc', live);
   const stipend = highest(offers, roles, 'stipend', live);
   const cutoffs = roles.map((r) => r.cgpa).filter((x) => x !== null);
-  const positive = cutoffs.filter((x) => x > 0);
   const ongoing = live && roles.some((r) => r.count === null);
   const branches = {};
   for (const o of offers) branches[o.branch] = (branches[o.branch] || 0) + 1;
@@ -185,7 +185,8 @@ export function sideStats(companies, { live = false } = {}) {
     ctcPosted: ctc.posted,
     avgCtc: offered.length ? offered.reduce((a, b) => a + b, 0) / offered.length : null,
     maxStipend: stipend.value,
-    cutoff: positive.length ? Math.min(...positive) : cutoffs.length ? 0 : null,
+    stipendPosted: stipend.posted,
+    cutoff: maxOf(cutoffs) === null ? null : Math.min(...cutoffs),
     students: new Set(offers.map((o) => o.studentKey)).size,
     branches: Object.fromEntries(Object.entries(branches).sort((a, b) => b[1] - a[1])),
     cats: [...new Set([...offers.map((o) => o.cat), ...roles.map((r) => r.cat)])].filter((k) => k && k !== 'Unknown'),

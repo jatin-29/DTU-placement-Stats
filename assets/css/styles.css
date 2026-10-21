@@ -2513,8 +2513,17 @@ main {
   min-width: 0;
   font-variant-numeric: tabular-nums;
 }
+/* labels are read out on desktop, where the header row shows them */
+.yoy-head + .yoy-list .yoy-m > .yoy-l {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .yoy-l {
-  display: none;
+  display: block;
   font-size: 11px;
   font-weight: 650;
   color: var(--muted);
@@ -2643,9 +2652,6 @@ main {
   flex-direction: column;
   gap: 6px;
 }
-.yoy-branches .yoy-l {
-  display: block;
-}
 .yoy-branches .branch-chips span {
   height: 26px;
   font-size: 12px;
@@ -2688,8 +2694,12 @@ main {
     top: 24px;
     right: 18px;
   }
-  .yoy-l {
-    display: block;
+  .yoy-head + .yoy-list .yoy-m > .yoy-l {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
   }
   .yoy-body {
     grid-template-columns: minmax(0, 1fr);
