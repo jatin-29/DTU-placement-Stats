@@ -119,6 +119,7 @@ const KNOWN = {
   'EXL Service': 'exlservice.com',
   'Exotel': 'exotel.com',
   'Expedia': 'expediagroup.com',
+  'Expedia Group': 'expediagroup.com',
   'ExxonMobil': 'exxonmobil.com',
   'EY': 'ey.com',
   'EY GDS': 'ey.com',

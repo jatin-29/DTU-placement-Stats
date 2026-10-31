@@ -19,6 +19,7 @@ the complete **2026 archive** (batch 2K22).
   recruiters for each branch.
 - **Students**: a searchable, sortable table of every offer. It filters by branch, profile,
   company, offer type and CGPA range, and exports to CSV.
+- **2028 (internships)**: summer internship selections for batch 2K24, company by company (selections, role, stipend, PPO route, CGPA cut-off, branches). Student names are not published for this batch. `scripts/fetch-2028.mjs` refreshes `data/2028.json` on every deploy.
 - **2026 vs 2027**: the two seasons side by side, by branch and profile mix, then company by company: every recruiter that came in 2026 and is back in 2027, with offers, highest and average CTC, stipend and CGPA cut-off for each year, the change, and the roles and branches behind them. Companies that are new this year, or not back yet, have their own tabs. Names are matched across years even when they changed (legal suffixes, brackets, renames such as Zomato → Eternal); the hand-checked renames live in `assets/js/lib/match.js`.
 
 ## How the live updates work

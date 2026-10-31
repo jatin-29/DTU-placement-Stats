@@ -3,8 +3,8 @@
 
 import { CONFIG } from '../config.js';
 import { fetchSheetTab } from './gviz.js';
-import { buildModel } from './stats.js';
-import { addReported, applyOverrides, archiveCompanyRows, companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
+import { buildModel, slugify } from './stats.js';
+import { addReported, applyOverrides, archiveCompanyRows, companyKey, companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: 'no-cache' });
@@ -59,4 +59,32 @@ export async function loadLive(id) {
     { [season.tabs.students]: students, [season.tabs.companies]: companies },
     { source: 'live', fetchedAt: new Date() },
   );
+}
+
+// An internship season: selections per company, without student names.
+export async function loadInternships(id) {
+  const season = CONFIG.seasons[id];
+  const json = await fetchJson(season.data);
+  const companies = json.companies
+    .map((c) => ({ ...c, name: c.company, key: companyKey(c.company), slug: slugify(c.company), domain: '' }))
+    .sort((a, b) => b.count - a.count || (b.stipend || 0) - (a.stipend || 0) || a.name.localeCompare(b.name));
+  const branches = {};
+  for (const c of companies) for (const [b, n] of Object.entries(c.branches)) branches[b] = (branches[b] || 0) + n;
+  const total = companies.reduce((a, c) => a + c.count, 0);
+  const paid = companies.filter((c) => c.stipend !== null);
+  const paidCount = paid.reduce((a, c) => a + c.count, 0);
+  return {
+    season,
+    meta: { source: 'archive', updated: json.updated },
+    companies,
+    totals: {
+      selections: total,
+      companies: companies.length,
+      // Weighted by selections: the stipend an average intern gets.
+      avgStipend: paidCount ? paid.reduce((a, c) => a + c.stipend * c.count, 0) / paidCount : null,
+      maxStipend: paid.length ? Math.max(...paid.map((c) => c.stipend)) : null,
+      withPpo: companies.filter((c) => c.ppo).reduce((a, c) => a + c.count, 0),
+      branches: Object.fromEntries(Object.entries(branches).sort((a, b) => b[1] - a[1])),
+    },
+  };
 }

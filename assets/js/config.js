@@ -45,6 +45,16 @@ export const CONFIG = {
         { label: '< 6.5', min: null, max: 6.5, total: 518 },
       ],
     },
+    '2028': {
+      id: '2028',
+      label: 'Internships 2028',
+      batch: '2K24',
+      live: false,
+      // Summer internship selections, company by company (no student names).
+      // Refreshed by scripts/fetch-2028.mjs on every deploy.
+      kind: 'internship',
+      data: 'data/2028.json',
+    },
     '2026': {
       id: '2026',
       label: 'Placements 2026',
@@ -56,7 +66,10 @@ export const CONFIG = {
   },
 };
 
-export const SEASON_IDS = ['2027', '2026'];
+export const SEASON_IDS = ['2028', '2027', '2026'];
+
+// The seasons the 2026 vs 2027 page compares.
+export const COMPARE_IDS = ['2027', '2026'];
 
 export const BRANCHES = {
   CS: { name: 'Computer Science & Engineering', short: 'CSE' },

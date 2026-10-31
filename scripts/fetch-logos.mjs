@@ -37,6 +37,8 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 async function seasonCompanies() {
   const out = [];
   for (const [id, season] of Object.entries(CONFIG.seasons)) {
+    // Internship seasons list only companies that are already in the KNOWN map.
+    if (season.kind === 'internship') continue;
     try {
       if (season.data) {
         const d = JSON.parse(await readFile(root(season.data), 'utf8'));

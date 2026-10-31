@@ -1,0 +1,264 @@
+{
+ "updated": "2026-10-31",
+ "companies": [
+  {
+   "company": "Microsoft",
+   "cat": "Tech",
+   "count": 18,
+   "roles": [
+    "Software Engineering Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 125,
+   "cgpa": 7,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 10,
+    "IT": 5,
+    "SE": 2,
+    "MISC": 1
+   }
+  },
+  {
+   "company": "Expedia Group",
+   "cat": "Tech",
+   "count": 12,
+   "roles": [
+    "SDE / Cloud / Mobile"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 75,
+   "cgpa": 0,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 7,
+    "IT": 2,
+    "SE": 1,
+    "MISC": 2
+   }
+  },
+  {
+   "company": "Natwest",
+   "cat": "Tech",
+   "count": 11,
+   "roles": [
+    "Software Engineer (Intern & FTE)"
+   ],
+   "offer": "Intern + PPO",
+   "ppo": true,
+   "stipend": 55,
+   "cgpa": 6.5,
+   "ppoCtc": "15.00 LPA",
+   "branches": {
+    "CS": 7,
+    "IT": 2,
+    "SE": 2
+   }
+  },
+  {
+   "company": "Google",
+   "cat": "Tech",
+   "count": 11,
+   "roles": [
+    "SWE Intern (incl. Big Code)"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 144.2,
+   "cgpa": 0,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 5,
+    "IT": 2,
+    "SE": 2,
+    "MISC": 2
+   }
+  },
+  {
+   "company": "Optum",
+   "cat": "Tech",
+   "count": 10,
+   "roles": [
+    "Software Engineer Intern"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 40,
+   "cgpa": null,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 4,
+    "IT": 3,
+    "SE": 1,
+    "MISC": 2
+   }
+  },
+  {
+   "company": "Sprinklr",
+   "cat": "Tech",
+   "count": 7,
+   "roles": [
+    "Product Engineer Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 150,
+   "cgpa": 6,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 5,
+    "SE": 2
+   }
+  },
+  {
+   "company": "ExxonMobil",
+   "cat": "Tech",
+   "count": 6,
+   "roles": [
+    "SDE Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 40,
+   "cgpa": 0,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 5,
+    "IT": 1
+   }
+  },
+  {
+   "company": "Cisco",
+   "cat": "Tech",
+   "count": 4,
+   "roles": [
+    "Software Engineer Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 98,
+   "cgpa": 6,
+   "ppoCtc": "~24.00 LPA",
+   "branches": {
+    "CS": 4
+   }
+  },
+  {
+   "company": "PwC",
+   "cat": "Non Tech",
+   "count": 4,
+   "roles": [
+    "Summer Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 40,
+   "cgpa": 6,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 2,
+    "MISC": 2
+   }
+  },
+  {
+   "company": "Fast Retailing",
+   "cat": "Tech",
+   "count": 3,
+   "roles": [
+    "Summer Intern"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 81.3,
+   "cgpa": null,
+   "ppoCtc": "JPY 8.2M (~45 LPA)",
+   "branches": {
+    "CS": 3
+   }
+  },
+  {
+   "company": "WWT",
+   "cat": "Tech",
+   "count": 2,
+   "roles": [
+    "Data Engineer Intern"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 150,
+   "cgpa": 0,
+   "ppoCtc": "18.15 LPA",
+   "branches": {
+    "CS": 1,
+    "IT": 1
+   }
+  },
+  {
+   "company": "Arcesium",
+   "cat": "Tech",
+   "count": 2,
+   "roles": [
+    "Member Technical Intern"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 150,
+   "cgpa": 8,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 2
+   }
+  },
+  {
+   "company": "Eternal",
+   "cat": "Tech",
+   "count": 2,
+   "roles": [
+    "Software Intern"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 100,
+   "cgpa": 0,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 1,
+    "IT": 1
+   }
+  },
+  {
+   "company": "Mastercard",
+   "cat": "Non Tech",
+   "count": 1,
+   "roles": [
+    "Associate Consultant"
+   ],
+   "offer": "2M Intern + PPO",
+   "ppo": true,
+   "stipend": 75,
+   "cgpa": 0,
+   "ppoCtc": "20.50 LPA",
+   "branches": {
+    "CS": 1
+   }
+  },
+  {
+   "company": "Salesforce",
+   "cat": "Tech",
+   "count": 1,
+   "roles": [
+    "Intern (AMTS)"
+   ],
+   "offer": "2M Intern",
+   "ppo": false,
+   "stipend": 150,
+   "cgpa": 7,
+   "ppoCtc": "",
+   "branches": {
+    "CS": 1
+   }
+  }
+ ]
+}

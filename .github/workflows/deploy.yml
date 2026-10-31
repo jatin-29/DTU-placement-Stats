@@ -33,6 +33,9 @@ jobs:
       - name: Refresh snapshot of the live Google Sheet
         run: node scripts/fetch-sheet.mjs || echo "::warning::Could not read the Google Sheet; deploying the committed snapshot"
 
+      - name: Refresh 2028 internship selections
+        run: node scripts/fetch-2028.mjs || echo "::warning::Could not refresh the 2028 data; deploying the committed copy"
+
       - name: Assemble site
         run: |
           mkdir _site

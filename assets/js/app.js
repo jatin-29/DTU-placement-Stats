@@ -1,7 +1,7 @@
 // App shell: routing, season loading, live refresh and the status bar.
 
-import { CONFIG, SEASON_IDS } from './config.js';
-import { loadArchive, loadLive, loadSnapshot } from './lib/data.js';
+import { COMPARE_IDS, CONFIG, SEASON_IDS } from './config.js';
+import { loadArchive, loadInternships, loadLive, loadSnapshot } from './lib/data.js';
 import { destroyCharts } from './lib/charts.js';
 import { ICONS, escapeHtml, html, timeAgo } from './lib/dom.js';
 import { installLogoFallbacks, loadLogoManifest } from './lib/logos.js';
@@ -10,6 +10,7 @@ import { renderCompanies } from './views/companies.js';
 import { renderBranches } from './views/branches.js';
 import { renderStudents } from './views/students.js';
 import { renderCompare } from './views/compare.js';
+import { renderInternships } from './views/internships.js';
 import { closeCompany, openCompany } from './views/company-dialog.js';
 
 const VIEWS = {
@@ -35,7 +36,9 @@ function parseHash() {
   const query = Object.fromEntries(new URLSearchParams(qs));
   if (parts[0] === 'compare') return { season: CONFIG.defaultSeason, view: 'compare', param: null, query };
   const season = SEASON_IDS.includes(parts[0]) ? parts[0] : CONFIG.defaultSeason;
-  const view = VIEWS[parts[1]] && parts[1] !== 'compare' ? parts[1] : 'dashboard';
+  let view = VIEWS[parts[1]] && parts[1] !== 'compare' ? parts[1] : 'dashboard';
+  // Internship seasons have a single page.
+  if (CONFIG.seasons[season].kind === 'internship') view = 'dashboard';
   return { season, view, param: parts[2] || null, query };
 }
 
@@ -64,7 +67,7 @@ function ensureSeason(id) {
   if (models[id] || pending[id]) return pending[id];
   const season = CONFIG.seasons[id];
   if (!season.live) {
-    pending[id] = loadArchive(id)
+    pending[id] = (season.kind === 'internship' ? loadInternships : loadArchive)(id)
       .then((m) => setModel(id, m))
       .catch((e) => {
         errors[id] = e;
@@ -129,13 +132,15 @@ function renderChrome() {
   const sw = document.getElementById('season-switch');
   sw.innerHTML = SEASON_IDS.map((id) => {
     const s = CONFIG.seasons[id];
-    const view = route.view === 'compare' ? 'dashboard' : route.view;
+    const view = route.view === 'compare' || s.kind === 'internship' ? 'dashboard' : route.view;
     const current = route.view !== 'compare' && route.season === id;
     return `<a href="${hrefFor(id, view)}" aria-current="${current}">${id}${s.live ? '<span class="live-dot" title="Live"></span>' : ''}</a>`;
   }).join('');
 
   const tabs = document.getElementById('tabs');
+  const single = CONFIG.seasons[route.season].kind === 'internship' && route.view !== 'compare';
   tabs.innerHTML = Object.entries(VIEWS)
+    .filter(([key]) => !single || key === 'dashboard' || key === 'compare')
     .map(([key, v]) => {
       const cur = route.view === key ? ' aria-current="page"' : '';
       return `<a href="${hrefFor(route.season, key)}"${cur}>${v.label}</a>`;
@@ -156,6 +161,7 @@ function statusHtml(id) {
     pill = `<span class="pill" title="Updates automatically"><span class="live-dot"></span>Live · synced <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
   else if (m.meta.source === 'snapshot')
     pill = `<span class="pill is-warn" title="${escapeHtml(err ? `Couldn't fetch the latest data: ${err.message}` : 'Fetching the latest data…')}">${err ? 'Offline copy' : 'Connecting…'} · data from <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
+  else if (season.kind === 'internship') pill = `<span class="pill">Internships · updated ${escapeHtml(m.meta.updated || '')}</span>`;
   else pill = `<span class="pill">Final · updated ${escapeHtml(m.meta.updated || '')}</span>`;
 
   const actions = [];
@@ -199,11 +205,11 @@ function rerender({ keepScroll = false } = {}) {
   const view = VIEWS[route.view];
 
   if (route.view === 'compare') {
-    SEASON_IDS.forEach(ensureSeason);
-    const ready = SEASON_IDS.every((id) => models[id]);
+    COMPARE_IDS.forEach(ensureSeason);
+    const ready = COMPARE_IDS.every((id) => models[id]);
     main.innerHTML = '';
     if (!ready) {
-      main.innerHTML = loadingHtml(SEASON_IDS.map((id) => errors[id]).find(Boolean));
+      main.innerHTML = loadingHtml(COMPARE_IDS.map((id) => errors[id]).find(Boolean));
       return;
     }
     view.render(main, ctx);
@@ -218,7 +224,8 @@ function rerender({ keepScroll = false } = {}) {
     main.innerHTML = head + '<div data-view></div>';
     ctx.fresh = location.hash !== lastRenderedHash;
     lastRenderedHash = location.hash;
-    view.render(main.querySelector('[data-view]'), m, ctx);
+    const render = m.season.kind === 'internship' ? renderInternships : view.render;
+    render(main.querySelector('[data-view]'), m, ctx);
   }
 
   if (route.view === 'companies' && route.param && models[route.season]) {
