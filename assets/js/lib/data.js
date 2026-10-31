@@ -4,7 +4,7 @@
 import { CONFIG } from '../config.js';
 import { fetchSheetTab } from './gviz.js';
 import { buildModel } from './stats.js';
-import { applyOverrides, archiveCompanyRows, companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
+import { addReported, applyOverrides, archiveCompanyRows, companyRowsFromRows, finalizeOffer, offersFromRows } from './normalize.js';
 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: 'no-cache' });
@@ -34,7 +34,8 @@ export async function loadArchive(id) {
 function modelFromTabs(season, tabs, meta) {
   const students = tabs[season.tabs.students] || [];
   const companies = tabs[season.tabs.companies] || [];
-  return buildModel(season, applyOverrides(offersFromRows(students), season.overrides), companyRowsFromRows(companies), {
+  const offers = applyOverrides(addReported(offersFromRows(students), season.reported), season.overrides);
+  return buildModel(season, offers, companyRowsFromRows(companies), {
     ...meta,
     fingerprint: fingerprint([students, companies]),
   });

@@ -235,6 +235,15 @@ export function applyOverrides(offers, overrides = []) {
   return offers.map((o) => (byStudent.has(o.studentKey) ? finalizeOffer({ ...o, ...byStudent.get(o.studentKey) }) : o));
 }
 
+// Selections reported to us before the live data lists them. Each is
+// dropped once the same student appears at the same company there.
+export function addReported(offers, reported = []) {
+  if (!reported.length) return offers;
+  const have = new Set(offers.map((o) => `${o.studentKey}|${o.companyKey}`));
+  const extra = reported.map(finalizeOffer).filter((o) => !have.has(`${o.studentKey}|${o.companyKey}`));
+  return extra.length ? [...offers, ...extra] : offers;
+}
+
 // Students tab -> offers
 export function offersFromRows(rows) {
   return rows

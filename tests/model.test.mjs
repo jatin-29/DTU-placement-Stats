@@ -89,3 +89,14 @@ test('recently placed: newest company batches from the end', async () => {
   assert.equal(recentBatches(rows, 10).length, 4);
   assert.deepEqual(recentBatches([], 6), []);
 });
+
+test('reported selections show until the live data lists them', async () => {
+  const { addReported } = await import('../assets/js/lib/normalize.js');
+  const rep = [{ roll: '23/EP/034', name: 'Devyansh Bhattacharya', cgpa: 8.772, branch: 'EP', company: 'Scaler AI Labs', role: 'SWE Intern', offer: '6M + PPO', ctc: 40, stipend: 75, cat: 'Tech' }];
+  const added = addReported([], rep);
+  assert.equal(added.length, 1);
+  assert.deepEqual([added[0].branch, added[0].companyKey, added[0].studentKey, added[0].cgpa], ['EP', 'scaleraiLabs'.toLowerCase(), '23/EP/34', 8.77]);
+  // Once the sheet has the same student at the same company, the report is ignored.
+  const live = offersFromRows([{ 'Roll No.': '23/EP/34', Name: 'DEVYANSH BHATTACHARYA', Company: 'SCALER AI LABS', Branch: 'EP' }]);
+  assert.equal(addReported(live, rep).length, 1);
+});

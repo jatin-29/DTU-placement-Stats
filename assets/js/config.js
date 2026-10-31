@@ -26,6 +26,15 @@ export const CONFIG = {
       overrides: [
         { roll: '23/EE/355', set: { cgpa: 8.4 } }, // Hiten Sharma
       ],
+      // Selections reported directly, shown until the live data lists them
+      // (same roll number at the same company), then ignored.
+      reported: [
+        {
+          roll: '23/EP/034', name: 'Devyansh Bhattacharya', cgpa: 8.772, branch: 'EP',
+          company: 'Scaler AI Labs', role: 'Software Engineer Intern', offer: '6M + PPO',
+          ctc: 40, stipend: 75, cat: 'Tech',
+        },
+      ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
         CS: 517, IT: 189, SE: 192, MC: 183, EC: 247, EE: 293, EP: 114,
