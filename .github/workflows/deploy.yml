@@ -38,6 +38,11 @@ jobs:
           mkdir _site
           cp -r index.html assets data _site/
           touch _site/.nojekyll
+          # Version every script and stylesheet URL, so browsers (phones
+          # especially) load new code right after a deploy, not a cached copy.
+          V="${GITHUB_SHA::8}"
+          sed -i -E "s#(assets/js/app\.js|assets/css/styles\.css)\"#\1?v=$V\"#g" _site/index.html
+          find _site/assets/js -name '*.js' -exec sed -i -E "s#(from '\.{1,2}/[^']+\.js)'#\1?v=$V'#g" {} +
 
       # Company logos are downloaded once and kept between runs.
       - name: Restore logo cache
