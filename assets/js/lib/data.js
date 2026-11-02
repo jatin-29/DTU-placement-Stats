@@ -75,7 +75,7 @@ export async function loadInternships(id) {
   const paidCount = paid.reduce((a, c) => a + c.count, 0);
   return {
     season,
-    meta: { source: 'archive', updated: json.updated },
+    meta: { source: 'internships', updated: json.updated, fetchedAt: new Date(json.updated) },
     companies,
     totals: {
       selections: total,

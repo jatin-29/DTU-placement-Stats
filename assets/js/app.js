@@ -161,7 +161,8 @@ function statusHtml(id) {
     pill = `<span class="pill" title="Updates automatically"><span class="live-dot"></span>Live · synced <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
   else if (m.meta.source === 'snapshot')
     pill = `<span class="pill is-warn" title="${escapeHtml(err ? `Couldn't fetch the latest data: ${err.message}` : 'Fetching the latest data…')}">${err ? 'Offline copy' : 'Connecting…'} · data from <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
-  else if (season.kind === 'internship') pill = `<span class="pill">Internships · updated ${escapeHtml(m.meta.updated || '')}</span>`;
+  else if (season.kind === 'internship')
+    pill = `<span class="pill" title="Updates automatically"><span class="live-dot"></span>Internships · updated <span data-ago>${timeAgo(m.meta.fetchedAt)}</span></span>`;
   else pill = `<span class="pill">Final · updated ${escapeHtml(m.meta.updated || '')}</span>`;
 
   const actions = [];
@@ -312,6 +313,24 @@ function maybeRefresh() {
   refreshLive(liveId);
 }
 setInterval(maybeRefresh, 30000);
+
+// Internship seasons are rebuilt on the server; re-read the file while open.
+let lastInternRefresh = Date.now();
+async function maybeRefreshInternships() {
+  const id = route.season;
+  const m = models[id];
+  if (!m || m.season.kind !== 'internship' || document.hidden) return;
+  if (Date.now() - lastInternRefresh < CONFIG.refreshMinutes * 60000 - 1000) return;
+  lastInternRefresh = Date.now();
+  try {
+    const next = await loadInternships(id);
+    if (JSON.stringify(next.companies) !== JSON.stringify(m.companies)) setModel(id, next);
+  } catch (e) {
+    console.warn('2028 refresh failed:', e);
+  }
+}
+setInterval(maybeRefreshInternships, 30000);
+document.addEventListener('visibilitychange', maybeRefreshInternships);
 document.addEventListener('visibilitychange', maybeRefresh);
 setInterval(() => {
   for (const el of document.querySelectorAll('[data-ago]')) {

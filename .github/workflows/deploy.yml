@@ -4,9 +4,10 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    # Hourly: refresh the offline copy of the live Google Sheet that ships with the site.
-    # (Visitors always read the sheet directly; this is only the fallback.)
-    - cron: '17 * * * *'
+    # Every 15 minutes: refresh the 2028 internship data and the offline copy
+    # of the live Google Sheet (visitors read the sheet directly; that copy is
+    # only the fallback).
+    - cron: '2,17,32,47 * * * *'
 
 permissions:
   contents: read

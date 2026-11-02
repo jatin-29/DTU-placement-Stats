@@ -74,6 +74,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const res = await fetch(SOURCE, { headers: { 'user-agent': 'Mozilla/5.0 (placement-stats build)' }, signal: AbortSignal.timeout(60000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const companies = internshipsFrom(await res.text());
-  await writeFile(OUT, `${JSON.stringify({ updated: new Date().toISOString().slice(0, 10), companies }, null, 1)}\n`);
+  await writeFile(OUT, `${JSON.stringify({ updated: new Date().toISOString(), companies }, null, 1)}\n`);
   console.log(`Wrote ${companies.length} companies, ${companies.reduce((a, c) => a + c.count, 0)} selections to data/2028.json`);
 }

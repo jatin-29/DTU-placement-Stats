@@ -2721,3 +2721,90 @@ main {
     padding: 0 10px;
   }
 }
+
+/* ---------- 2028 internships ---------- */
+.intern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+.intern-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 20px 18px;
+}
+.intern-card .cc-stats {
+  grid-template-columns: 0.8fr 1.2fr 1fr;
+}
+.intern-card .cc-stat .v {
+  font-size: 23px;
+}
+.intern-card .cc-name p .key {
+  width: 7px;
+  height: 7px;
+  margin: 0 2px 0 0;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+.ic-new {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  height: 22px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--good) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--good) 30%, transparent);
+  color: var(--good);
+  font-size: 11px;
+  font-weight: 700;
+}
+.intern-card:has(.ic-new) .cc-name {
+  padding-right: 64px;
+}
+.ic-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ic-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ic-bar span {
+  min-width: 4px;
+}
+.ic-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ic-legend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 2px;
+}
+.ic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+.tag.is-ppo {
+  background: color-mix(in srgb, var(--measure) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--measure) 30%, transparent);
+  color: color-mix(in srgb, var(--measure) 75%, var(--ink));
+}
