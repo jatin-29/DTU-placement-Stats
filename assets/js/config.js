@@ -1,5 +1,8 @@
 // Site configuration. Everything that is specific to a placement season lives here.
 
+// Shared fields of a batch of reported selections.
+const SAMSUNG_EA = { company: 'Samsung E&A', offer: 'FTE', ctc: 8.5, base: 8.3, cat: 'Core' };
+
 export const CONFIG = {
   defaultSeason: '2027',
 
@@ -28,7 +31,24 @@ export const CONFIG = {
       ],
       // Selections reported directly, shown until the live data lists them
       // (same roll number at the same company), then ignored.
-      reported: [],
+      reported: [
+        // Samsung E&A FTE selections, announced 4 Nov 2026.
+        { roll: '23/CH/097', name: 'Shashwat Yadav', branch: 'CH', role: 'GET (Execution)', ...SAMSUNG_EA },
+        { roll: '23/CH/071', name: 'Sohil Samarajit M', branch: 'CH', role: 'GET (Process)', ...SAMSUNG_EA },
+        { roll: '23/CE/158', name: 'Arun Tiwari', branch: 'CE', role: 'GET (CSA)', ...SAMSUNG_EA },
+        { roll: '23/CE/079', name: 'Naman Gupta', branch: 'CE', role: 'GET (CSA)', ...SAMSUNG_EA },
+        { roll: '23/CE/138', name: 'Utkarsh', branch: 'CE', role: 'GET (CSA)', ...SAMSUNG_EA },
+        { roll: '23/EE/053', name: 'Aryan Upadhyay', branch: 'EE', role: 'GET (Electrical)', ...SAMSUNG_EA },
+        { roll: '23/EE/116', name: 'Jayant Pant', branch: 'EE', role: 'GET (Electrical)', ...SAMSUNG_EA },
+        { roll: '23/EE/342', name: 'Soumya Sen', branch: 'EE', role: 'GET (Electrical)', ...SAMSUNG_EA },
+        { roll: '23/EE/256', name: 'Sumit Guin', branch: 'EE', role: 'GET (Electrical)', ...SAMSUNG_EA },
+        { roll: '23/ME/033', name: 'Ajay Nayak', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        { roll: '23/ME/058', name: 'Anujansh', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        { roll: '23/ME/068', name: 'Arpit Tiwari', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        { roll: '23/ME/117', name: 'Govind Garg', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        { roll: '23/ME/167', name: 'Manjeet Kumar', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        { roll: '23/ME/355', name: 'Rudransh Maliya', branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+      ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
         CS: 517, IT: 189, SE: 192, MC: 183, EC: 247, EE: 293, EP: 114,
