@@ -99,4 +99,8 @@ test('reported selections show until the live data lists them', async () => {
   // Once the sheet has the same student at the same company, the report is ignored.
   const live = offersFromRows([{ 'Roll No.': '23/EP/34', Name: 'DEVYANSH BHATTACHARYA', Company: 'SCALER AI LABS', Branch: 'EP' }]);
   assert.equal(addReported(live, rep).length, 1);
+  // A report without a CGPA borrows it from the student's other offers.
+  const other = offersFromRows([{ 'Roll No.': '23/EP/034', Name: 'Devyansh', Company: 'Acme', CGPA: 8.5, Branch: 'EP' }]);
+  const noCgpa = addReported(other, [{ ...rep[0], cgpa: undefined }]);
+  assert.equal(noCgpa[1].cgpa, 8.5);
 });

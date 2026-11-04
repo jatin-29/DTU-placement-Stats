@@ -240,7 +240,12 @@ export function applyOverrides(offers, overrides = []) {
 export function addReported(offers, reported = []) {
   if (!reported.length) return offers;
   const have = new Set(offers.map((o) => `${o.studentKey}|${o.companyKey}`));
-  const extra = reported.map(finalizeOffer).filter((o) => !have.has(`${o.studentKey}|${o.companyKey}`));
+  // A CGPA left out of the report is taken from the student's other offers.
+  const cgpaOf = new Map(offers.filter((o) => o.cgpa !== null).map((o) => [o.studentKey, o.cgpa]));
+  const extra = reported
+    .map(finalizeOffer)
+    .filter((o) => !have.has(`${o.studentKey}|${o.companyKey}`))
+    .map((o) => (o.cgpa === null && cgpaOf.has(o.studentKey) ? { ...o, cgpa: cgpaOf.get(o.studentKey) } : o));
   return extra.length ? [...offers, ...extra] : offers;
 }
 
