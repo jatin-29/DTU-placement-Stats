@@ -31,6 +31,9 @@ export const CONFIG = {
       ],
       // Selections reported directly, shown until the live data lists them
       // (same roll number at the same company), then ignored.
+      // Companies whose process ended with no selections, shown as such even
+      // while the live data still leaves their count blank.
+      closedNoSelection: ['Cmart Solutions'],
       reported: [
         // Samsung E&A FTE selections, announced 4 Nov 2026.
         { roll: '23/CH/097', name: 'Shashwat Yadav', cgpa: 7.243, branch: 'CH', role: 'GET (Execution)', ...SAMSUNG_EA },

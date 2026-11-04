@@ -35,7 +35,10 @@ function modelFromTabs(season, tabs, meta) {
   const students = tabs[season.tabs.students] || [];
   const companies = tabs[season.tabs.companies] || [];
   const offers = applyOverrides(addReported(offersFromRows(students), season.reported), season.overrides);
-  return buildModel(season, offers, companyRowsFromRows(companies), {
+  // Drives reported finished with no selections, while the sheet still has them blank.
+  const closed = new Set((season.closedNoSelection || []).map(companyKey));
+  const rows = companyRowsFromRows(companies).map((r) => (r.count === null && closed.has(r.companyKey) ? { ...r, count: 0 } : r));
+  return buildModel(season, offers, rows, {
     ...meta,
     fingerprint: fingerprint([students, companies]),
   });
