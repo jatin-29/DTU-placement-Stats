@@ -2,6 +2,7 @@
 
 // Shared fields of a batch of reported selections.
 const SAMSUNG_EA = { company: 'Samsung E&A', offer: 'FTE', ctc: 8.5, base: 8.3, cat: 'Core' };
+const SCALER_AI = { company: 'Scaler AI Labs', role: 'Software Engineer Intern', offer: '6M + PPO', ctc: 40, stipend: 75, cat: 'Tech' };
 
 export const CONFIG = {
   defaultSeason: '2027',
@@ -51,6 +52,10 @@ export const CONFIG = {
         { roll: '23/ME/117', name: 'Govind Garg', cgpa: 9.379, branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
         { roll: '23/ME/167', name: 'Manjeet Kumar', cgpa: 8.674, branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
         { roll: '23/ME/355', name: 'Rudransh Maliya', cgpa: 7.314, branch: 'ME', role: 'GET (Piping)', ...SAMSUNG_EA },
+        // Scaler AI Labs 6M + PPO selections, announced 5 Nov 2026 (more expected).
+        { roll: '23/IT/209', name: 'Aryan Goel', cgpa: 8.734, branch: 'IT', ...SCALER_AI },
+        { roll: '23/EP/034', name: 'Devyansh Bhattacharya', cgpa: 8.772, branch: 'EP', ...SCALER_AI },
+        { roll: '23/CS/462', name: 'Vishrut Grover', cgpa: 8.938, branch: 'CS', ...SCALER_AI },
       ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
