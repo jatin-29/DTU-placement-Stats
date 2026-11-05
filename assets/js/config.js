@@ -56,6 +56,8 @@ export const CONFIG = {
         { roll: '23/IT/209', name: 'Aryan Goel', cgpa: 8.734, branch: 'IT', ...SCALER_AI },
         { roll: '23/EP/034', name: 'Devyansh Bhattacharya', cgpa: 8.772, branch: 'EP', ...SCALER_AI },
         { roll: '23/CS/462', name: 'Vishrut Grover', cgpa: 8.938, branch: 'CS', ...SCALER_AI },
+        // EverythingRF LLP 6M + FTE selection, announced 5 Nov 2026 (posted CTC 6-8.4 LPA).
+        { roll: '23/EC/203', name: 'Sonu Kumar', cgpa: 8.008, branch: 'EC', company: 'EverythingRF LLP', role: 'Graduate Engineer', offer: '6M + FTE', ctc: 8.4, cat: 'Core' },
       ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
