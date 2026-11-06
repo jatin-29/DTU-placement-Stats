@@ -430,6 +430,9 @@ const KNOWN = {
   'Synapse BioPharma': 'synapsebiopharma.com',
   'Statcon': 'statconenergiaa.com',
   'Iffco-Tokio': 'iffcotokio.co.in',
+  'Bloomberg': 'bloomberg.com',
+  'Arali': 'arali.ai',
+  'TKIL Industries Pvt. Ltd.': 'tkil.com',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
