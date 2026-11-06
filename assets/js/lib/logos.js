@@ -428,6 +428,8 @@ const KNOWN = {
   'Jakson Group': 'jakson.com',
   'Ramboll India': 'ramboll.com',
   'Synapse BioPharma': 'synapsebiopharma.com',
+  'Statcon': 'statconenergiaa.com',
+  'Iffco-Tokio': 'iffcotokio.co.in',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
