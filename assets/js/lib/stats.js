@@ -102,12 +102,25 @@ export function buildModel(season, offers, companyRows = [], meta = {}) {
     c.names.push(name);
     return c;
   };
-  for (const o of offers) ensure(o.companyKey, o.company).offers.push(o);
-  for (const r of companyRows) {
+  offers.forEach((o, i) => {
+    const c = ensure(o.companyKey, o.company);
+    c.offers.push(o);
+    // Results are appended in the order they come out.
+    c.lastOffer = i;
+  });
+  // The postings list is kept in A–Z order with new companies added at the
+  // end, so the rows after the sorted run are the newest.
+  const label = (r) => (r.drive || r.company || '').trim().toLowerCase();
+  let tail = companyRows.findIndex((r, i) => i > 0 && label(r) < label(companyRows[i - 1]));
+  if (tail < 0) tail = companyRows.length;
+  companyRows.forEach((r, i) => {
     const c = ensure(r.companyKey, r.company);
+    if (i >= tail) c.newRow = i;
+    const t = r.date ? Date.parse(r.date) : NaN;
+    if (!Number.isNaN(t)) c.lastDate = Math.max(c.lastDate ?? t, t);
     c.roles.push(r);
     if (r.domain && !c.domain) c.domain = r.domain;
-  }
+  });
 
   const companies = [...byKey.values()].map((c) => {
     const name = pickDisplayName(c.names);
@@ -148,6 +161,9 @@ export function buildModel(season, offers, companyRows = [], meta = {}) {
       offerTypes,
       roleNames,
       students: new Set(c.offers.map((o) => o.studentKey)).size,
+      // Higher = more recent: newly added postings first, then the latest
+      // posting date (archives) or the latest results.
+      recency: c.newRow !== undefined ? 1e13 + c.newRow : c.lastDate ?? c.lastOffer ?? -1,
     };
   });
   companies.sort((a, b) => b.count - a.count || (b.maxCtc || 0) - (a.maxCtc || 0) || a.name.localeCompare(b.name));

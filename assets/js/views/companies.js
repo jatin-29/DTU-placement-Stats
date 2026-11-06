@@ -26,6 +26,7 @@ function filtered(m) {
     offers: (a, b) => b.count - a.count || (b.maxCtc || 0) - (a.maxCtc || 0),
     ctc: (a, b) => (b.maxCtc || 0) - (a.maxCtc || 0) || b.count - a.count,
     name: (a, b) => a.name.localeCompare(b.name),
+    newest: (a, b) => b.recency - a.recency || b.count - a.count,
   }[state.sort];
   return list.sort(by);
 }
@@ -99,6 +100,7 @@ export function renderCompanies(root, m, ctx) {
       </select>
       <select class="select" data-f="sort" aria-label="Sort">
         <option value="offers">Most offers</option>
+        <option value="newest">Latest first</option>
         <option value="ctc">Highest CTC</option>
         <option value="name">A–Z</option>
       </select>
