@@ -433,6 +433,7 @@ const KNOWN = {
   'Bloomberg': 'bloomberg.com',
   'Arali': 'arali.ai',
   'TKIL Industries Pvt. Ltd.': 'tkil.com',
+  'Tata Power DDL': 'tatapower-ddl.com',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
