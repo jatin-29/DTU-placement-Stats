@@ -434,6 +434,9 @@ const KNOWN = {
   'Arali': 'arali.ai',
   'TKIL Industries Pvt. Ltd.': 'tkil.com',
   'Tata Power DDL': 'tatapower-ddl.com',
+  'Siemens': 'siemens.com',
+  'Innodata India Pvt Ltd': 'innodata.com',
+  'Zeepty Technologies Private Ltd.': 'zeepty.com',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
