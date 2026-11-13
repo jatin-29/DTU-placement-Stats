@@ -437,6 +437,9 @@ const KNOWN = {
   'Siemens': 'siemens.com',
   'Innodata India Pvt Ltd': 'innodata.com',
   'Zeepty Technologies Private Ltd.': 'zeepty.com',
+  'Havells': 'havells.com',
+  'Perfact Group': 'perfactgroup.com',
+  'Allied Vista Consulting': 'alliedvista.com',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
