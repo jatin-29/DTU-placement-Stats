@@ -440,6 +440,16 @@ const KNOWN = {
   'Havells': 'havells.com',
   'Perfact Group': 'perfactgroup.com',
   'Allied Vista Consulting': 'alliedvista.com',
+  'ArcelorMittal GBT': 'arcelormittal.com',
+  'FischerJordan': 'fischerjordan.com',
+  'Human Archive': 'humanarchive.ai',
+  'Nomura Research Institute (NRI)': 'nri.com',
+  'Ciroos': 'ciroos.ai',
+  'My Real Data': 'myrealdata.in',
+  'NexTurn': 'nexturn.com',
+  'Sterlite Networks Ltd': 'stl.tech',
+  'Marauti Suzuki': 'marutisuzuki.com',
+  'Carrier': 'carrier.com',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
