@@ -65,6 +65,8 @@ export const CONFIG = {
         { roll: '23/CS/444', name: 'Unnat Agrawal', cgpa: 8.832, branch: 'CS', role: 'Software Engineer Intern', ...SIEMENS },
         { roll: '23/IT/109', name: 'Nidhi Dhankarghare', cgpa: 8.537, branch: 'IT', role: 'QA Testing Intern', ...SIEMENS },
         { roll: '23/IT/136', name: 'Ritik Saini', cgpa: 9.514, branch: 'IT', role: 'QA Testing Intern', ...SIEMENS },
+        // ZS Associates 6M + FTE selection, announced 23 Nov 2026 (CTC 18-19 LPA; more expected).
+        { roll: '23/CS/120', name: 'Deepansh Gupta', cgpa: 7.887, branch: 'CS', company: 'ZS Associates', role: 'Data Science Associate', offer: '6M + FTE', ctc: 19, cat: 'Tech' },
       ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
