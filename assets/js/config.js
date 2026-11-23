@@ -2,6 +2,7 @@
 
 // Shared fields of a batch of reported selections.
 const SAMSUNG_EA = { company: 'Samsung E&A', offer: 'FTE', ctc: 8.5, base: 8.3, cat: 'Core' };
+const NRI = { company: 'Nomura Research Institute (NRI)', role: 'Associate Consultant', offer: '6M + FTE', ctc: 17.7, stipend: 50, cat: 'Non Tech' };
 const SIEMENS = { company: 'Siemens', offer: '6M + PPO', stipend: 45, ctc: 14, base: 14, cat: 'Tech' };
 const SCALER_AI = { company: 'Scaler AI Labs', role: 'Software Engineer Intern', offer: '6M + PPO', ctc: 40, stipend: 75, cat: 'Tech' };
 
@@ -67,6 +68,9 @@ export const CONFIG = {
         { roll: '23/IT/136', name: 'Ritik Saini', cgpa: 9.514, branch: 'IT', role: 'QA Testing Intern', ...SIEMENS },
         // ZS Associates 6M + FTE selection, announced 23 Nov 2026 (CTC 18-19 LPA; more expected).
         { roll: '23/CS/120', name: 'Deepansh Gupta', cgpa: 7.887, branch: 'CS', company: 'ZS Associates', role: 'Data Science Associate', offer: '6M + FTE', ctc: 19, cat: 'Tech' },
+        // NRI 6M + FTE selections, announced 23 Nov 2026: CTC 17.70 LPA (+ 3 L retention bonus over 3 years).
+        { roll: '23/EE/240', name: 'Shreya Prasad', cgpa: 9.651, branch: 'EE', ...NRI },
+        { roll: '23/ME/067', name: 'Arpit Kumar', cgpa: 8.936, branch: 'ME', ...NRI },
       ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
