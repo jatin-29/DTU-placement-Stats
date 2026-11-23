@@ -450,6 +450,9 @@ const KNOWN = {
   'Sterlite Networks Ltd': 'stl.tech',
   'Marauti Suzuki': 'marutisuzuki.com',
   'Carrier': 'carrier.com',
+  'Genpact': 'genpact.com',
+  'MKS Inc.': 'mks.com',
+  'Powertrace Technologies': 'powertrace.in',
 };
 
 const DOMAINS = new Map(Object.entries(KNOWN).map(([name, domain]) => [companyKey(name), domain]));
