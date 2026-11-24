@@ -71,6 +71,8 @@ export const CONFIG = {
         // NRI 6M + FTE selections, announced 23 Nov 2026: CTC 17.70 LPA (+ 3 L retention bonus over 3 years).
         { roll: '23/EE/240', name: 'Shreya Prasad', cgpa: 9.651, branch: 'EE', ...NRI },
         { roll: '23/ME/067', name: 'Arpit Kumar', cgpa: 8.936, branch: 'ME', ...NRI },
+        // Bloomberg FTE selection, announced 24 Nov 2026.
+        { roll: '23/MC/038', name: 'Avni Dhir', cgpa: 8.722, branch: 'MC', company: 'Bloomberg', role: 'Data Management Professional', offer: 'FTE', ctc: 22, cat: 'Tech' },
       ],
       // Batch size per branch and per CGPA band (from the sheet's Analytics tab).
       branchStrength: {
